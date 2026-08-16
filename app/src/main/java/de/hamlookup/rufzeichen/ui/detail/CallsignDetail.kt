@@ -12,7 +12,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,9 +50,10 @@ fun CallsignDetailContent(
             )
             IconButton(onClick = { onToggleFavorite(!isFavorite) }) {
                 Icon(
-                    imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                    imageVector = Icons.Filled.Star,
                     contentDescription = if (isFavorite) "Aus Favoriten entfernen" else "Zu Favoriten",
-                    tint = MaterialTheme.colorScheme.tertiary
+                    tint = if (isFavorite) MaterialTheme.colorScheme.tertiary
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                 )
             }
         }

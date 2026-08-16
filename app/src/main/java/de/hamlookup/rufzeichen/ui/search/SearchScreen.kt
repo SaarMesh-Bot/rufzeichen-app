@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -169,9 +168,8 @@ private fun HistoryList(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(Icons.Filled.History, contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("  Verlauf", style = MaterialTheme.typography.labelSmall,
+            Text("Verlauf", style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f))
             TextButton(onClick = onClear) { Text("Löschen") }
         }
