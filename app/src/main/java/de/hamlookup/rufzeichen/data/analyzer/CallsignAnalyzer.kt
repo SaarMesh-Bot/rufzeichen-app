@@ -78,15 +78,17 @@ object CallsignAnalyzer {
     )
 
     /**
-     * German licence class heuristic based on the call sign prefix block.
+     * German licence class heuristic based on the call sign prefix block
+     * (Stand: nach der Novellierung 2024, Einführung der Klasse N).
+     *
      * Note: this is an approximation. The authoritative class comes from the
-     * BNetzA data source; this only fills the gap when offline.
+     * BNetzA data source (Spalte "K"); this only fills the gap when offline.
      */
     private fun germanClassHint(prefix: String): String? = when (prefix.uppercase()) {
-        "DO" -> "Klasse N (Einsteiger)"
-        "DN" -> "Ausbildungsrufzeichen"
-        "DL", "DK", "DJ", "DH", "DG", "DF", "DD", "DC", "DB", "DA" -> "Klasse A (Standard)"
-        "DP" -> "Sonder-/Klubstation (Klasse A)"
+        "DN" -> "Klasse N (Einsteiger)"
+        "DO" -> "Klasse E (Einsteiger)"
+        "DL", "DK", "DJ", "DH", "DG", "DF", "DD", "DC", "DB", "DA" -> "Klasse A"
+        "DP" -> "Sonder-/Klubstation"
         "DM", "DR", "DQ" -> "Klub- oder Sonderrufzeichen"
         else -> null
     }

@@ -20,28 +20,27 @@ import java.util.concurrent.TimeUnit
  * https://ans.bundesnetzagentur.de/Amateurfunk/Rufzeichen.aspx by
  *   1. fetching the page to capture the hidden ViewState fields,
  *   2. posting the search term back with those fields, and
- *   3. parsing the returned HTML table.
+ *   3. parsing the returned HTML result table.
  *
- * Because it depends on the page's markup, it can break if the BNetzA changes
- * its website. The parsing is intentionally defensive (it discovers field and
- * column names dynamically) to survive small changes, and all failures are
- * reported as an empty result rather than crashing the app.
+ * The result table has the columns:
+ *   Rufzeichen | K | p. Rufz. | Inhaber | Betriebsort
+ * where "K" is the licence class (A / E / N). Parsing keys off these header
+ * labels, so small layout changes are tolerated. All failures are reported as
+ * an empty result rather than crashing the app.
  */
 class BnetzaDataSource(
     private val client: OkHttpClient = defaultClient()
 ) {
     companion object {
         const val BASE_URL = "https://ans.bundesnetzagentur.de/Amateurfunk/Rufzeichen.aspx"
-        private val HIDDEN_FIELDS = listOf(
-            "__VIEWSTATE", "__VIEWSTATEGENERATOR", "__EVENTVALIDATION",
-            "__EVENTTARGET", "__EVENTARGUMENT", "__VIEWSTATEENCRYPTED"
-        )
 
         private fun defaultClient(): OkHttpClient = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
             .followRedirects(true)
             .build()
+
+        private val CALL_REGEX = Regex("^[A-Z0-9]{1,3}[0-9][A-Z0-9]{0,4}$")
     }
 
     /**
@@ -53,7 +52,6 @@ class BnetzaDataSource(
         try {
             val page = get(BASE_URL) ?: return@withContext emptyList()
             val doc = Jsoup.parse(page, BASE_URL)
-
             val form = doc.selectFirst("form") ?: return@withContext emptyList()
 
             // Collect all hidden inputs (ViewState etc.).
@@ -63,21 +61,19 @@ class BnetzaDataSource(
                 if (name.isNotEmpty()) formBuilder.add(name, input.attr("value"))
             }
 
-            // Find the search text field. Prefer a text input, else any input
-            // whose name contains "ruf" (Rufzeichen).
+            // Find the search text field (name is "Text1", but discover it dynamically).
             val textInput = form.select("input[type=text]").firstOrNull()
-                ?: form.select("input")
-                    .firstOrNull { it.attr("name").contains("ruf", ignoreCase = true) }
+                ?: form.select("input").firstOrNull { it.attr("name").contains("text", true) }
             val fieldName = textInput?.attr("name") ?: return@withContext emptyList()
             formBuilder.add(fieldName, query)
 
-            // Include the submit button if present (WebForms often needs it).
+            // Include the submit button (name "Bt_Suche") if present.
             form.select("input[type=submit]").firstOrNull()?.let { submit ->
                 val n = submit.attr("name")
-                if (n.isNotEmpty()) formBuilder.add(n, submit.attr("value").ifEmpty { "Suchen" })
+                if (n.isNotEmpty()) formBuilder.add(n, submit.attr("value").ifEmpty { "Suche starten" })
             }
 
-            val resultHtml = post(BASE_URL, formBuilder.build().let { it }) ?: return@withContext emptyList()
+            val resultHtml = post(BASE_URL, formBuilder.build()) ?: return@withContext emptyList()
             parseResults(Jsoup.parse(resultHtml, BASE_URL))
         } catch (e: Exception) {
             emptyList()
@@ -85,51 +81,67 @@ class BnetzaDataSource(
     }
 
     private fun parseResults(doc: Document): List<Callsign> {
-        // Find the table that actually contains result rows. Heuristic: the
-        // table with the most data rows that mentions a call-sign-like token.
-        val tables = doc.select("table")
-        val callRegex = Regex("^[A-Z0-9]{1,3}[0-9][A-Z0-9]{0,4}$")
+        for (table in doc.select("table")) {
+            val rows = table.select("tr")
+            if (rows.isEmpty()) continue
 
-        val best = tables.maxByOrNull { table ->
-            table.select("tr").count { tr ->
-                tr.select("td").any { callRegex.matches(it.text().trim().uppercase()) }
-            }
-        } ?: return emptyList()
+            // Locate the header row: contains "Rufzeichen" plus one of the other columns.
+            val headerRow = rows.firstOrNull { row ->
+                val texts = row.select("th, td").map { clean(it.text()) }
+                texts.any { it.equals("Rufzeichen", true) } &&
+                    texts.any {
+                        it.equals("K", true) || it.contains("Inhaber", true) ||
+                            it.contains("Betriebsort", true)
+                    }
+            } ?: continue
 
-        val rows = best.select("tr")
-        if (rows.isEmpty()) return emptyList()
-
-        // Determine header labels from the first row that uses <th>, else first row.
-        val headerCells = rows.firstOrNull { it.select("th").isNotEmpty() }?.select("th")
-            ?: rows.first().select("td")
-        val headers = headerCells.map { it.text().trim() }
-
-        val results = mutableListOf<Callsign>()
-        rows.forEach { tr ->
-            val cells = tr.select("td")
-            if (cells.isEmpty()) return@forEach
-            val values = cells.map { it.text().trim() }
-            // Skip rows without a call-sign-like token.
-            val callIdx = values.indexOfFirst { callRegex.matches(it.uppercase()) }
-            if (callIdx < 0) return@forEach
-
-            val map = LinkedHashMap<String, String>()
-            values.forEachIndexed { i, v ->
-                val key = headers.getOrNull(i)?.takeIf { it.isNotEmpty() } ?: "Feld ${i + 1}"
-                if (v.isNotEmpty()) map[key] = v
+            val headers = headerRow.select("th, td").map { clean(it.text()) }
+            val cCall = headers.indexOfFirst { it.equals("Rufzeichen", true) }
+            val cClass = headers.indexOfFirst { it.equals("K", true) }
+            val cPrev = headers.indexOfFirst { it.contains("p. Rufz", true) || it.contains("pers", true) }
+            val cHolder = headers.indexOfFirst { it.contains("Inhaber", true) }
+            val cQth = headers.indexOfFirst {
+                it.contains("Betriebsort", true) || it.contains("Standort", true) || it == "Ort"
             }
 
-            results += Callsign(
-                callsign = values[callIdx].uppercase(),
-                holderName = map.entries.firstOrNull { it.key.contains("Name", true) || it.key.contains("Inhaber", true) }?.value,
-                licenceClass = map.entries.firstOrNull { it.key.contains("Klasse", true) }?.value,
-                qth = map.entries.firstOrNull { it.key.contains("Ort", true) || it.key.contains("QTH", true) || it.key.contains("Standort", true) }?.value,
-                extra = map,
-                sources = setOf(DataSourceType.BNETZA)
-            )
+            val headerIdx = rows.indexOf(headerRow)
+            val results = mutableListOf<Callsign>()
+            for (i in (headerIdx + 1) until rows.size) {
+                val cells = rows[i].select("td").map { clean(it.text()) }
+                if (cells.isEmpty()) continue
+                val call = cells.getOrNull(cCall)?.uppercase()?.takeIf { it.isNotBlank() } ?: continue
+                if (!CALL_REGEX.matches(call)) continue
+
+                val extra = LinkedHashMap<String, String>()
+                cells.getOrNull(cPrev)?.takeIf { it.isNotBlank() }?.let { extra["Pers. Rufzeichen"] = it }
+                val classCode = cells.getOrNull(cClass)?.takeIf { it.isNotBlank() }
+
+                results += Callsign(
+                    callsign = call,
+                    holderName = cells.getOrNull(cHolder)?.takeIf { it.isNotBlank() },
+                    licenceClass = classCode?.let { classLabel(it) },
+                    qth = cells.getOrNull(cQth)?.takeIf { it.isNotBlank() },
+                    extra = extra,
+                    sources = setOf(DataSourceType.BNETZA)
+                )
+            }
+            if (results.isNotEmpty()) return results
         }
-        return results
+        return emptyList()
     }
+
+    /** Maps the single-letter BNetzA class code to a readable label. */
+    private fun classLabel(code: String): String = when (code.trim().uppercase()) {
+        "A" -> "Klasse A"
+        "E" -> "Klasse E (Einsteiger)"
+        "N" -> "Klasse N (Einsteiger)"
+        else -> code.trim()
+    }
+
+    /** Normalises all whitespace, including non-breaking spaces, from scraped cells. */
+    private fun clean(s: String): String =
+        buildString { s.forEach { append(if (it.isWhitespace()) ' ' else it) } }
+            .replace(Regex(" +"), " ").trim()
 
     private fun get(url: String): String? {
         val req = Request.Builder().url(url)
@@ -153,4 +165,4 @@ class BnetzaDataSource(
 }
 
 private const val USER_AGENT =
-    "RufzeichenApp/1.0 (Android; Amateurfunk Rufzeichensuche)"
+    "Mozilla/5.0 (Android) RufzeichenApp/1.1 (Amateurfunk Rufzeichensuche)"
