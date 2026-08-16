@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Rufzeichen</string>
+    <string name="search_hint">Rufzeichen suchen (z. B. DL1ABC, db2*k)</string>
+    <string name="tab_search">Suche</string>
+    <string name="tab_favorites">Favoriten</string>
+    <string name="empty_search">Gib ein Rufzeichen ein. \'*\' ist als Platzhalter für ein Zeichen erlaubt.</string>
+    <string name="empty_favorites">Noch keine Favoriten gespeichert.</string>
+    <string name="no_results">Keine Treffer gefunden.</string>
+    <string name="source_bnetza">BNetzA</string>
+    <string name="source_hamqth">HamQTH</string>
+    <string name="source_offline">Offline-Analyse</string>
+</resources>
