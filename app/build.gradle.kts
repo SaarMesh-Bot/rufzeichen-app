@@ -13,16 +13,32 @@ android {
         applicationId = "de.hamlookup.rufzeichen"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
     }
 
+    // Fixed signing key so every build (incl. CI) produces an APK that can be
+    // installed as an update over previous versions. This is a throwaway app
+    // signing key committed on purpose (not a production release secret).
+    signingConfigs {
+        create("stable") {
+            storeFile = file("rufzeichen.keystore")
+            storePassword = "rufzeichen"
+            keyAlias = "rufzeichen"
+            keyPassword = "rufzeichen"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("stable")
+        }
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("stable")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
