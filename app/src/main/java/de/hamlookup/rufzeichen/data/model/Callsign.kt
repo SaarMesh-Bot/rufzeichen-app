@@ -4,6 +4,7 @@ package de.hamlookup.rufzeichen.data.model
 enum class DataSourceType(val label: String) {
     BNETZA("BNetzA"),
     HAMQTH("HamQTH"),
+    BACKEND("Server"),      // international lookup via the hamapi backend
     OFFLINE("Offline-Analyse")
 }
 
@@ -12,6 +13,10 @@ enum class DataSourceType(val label: String) {
  * data sources provide different levels of detail. [analysis] is always
  * populated from the offline analyzer so the UI can show something even
  * when no network source returns data.
+ *
+ * The lower block of fields is populated by the international backend
+ * ([sourceName]/[official] carry the concrete provider and whether it is an
+ * authoritative/official source vs. a community database).
  */
 data class Callsign(
     val callsign: String,
@@ -22,7 +27,15 @@ data class Callsign(
     val country2: String? = null,
     val extra: Map<String, String> = emptyMap(),
     val sources: Set<DataSourceType> = emptySet(),
-    val analysis: CallsignAnalysis? = null
+    val analysis: CallsignAnalysis? = null,
+    // --- international / backend enrichment (all optional) ---
+    val countryCode: String? = null,
+    val licenseStatus: String? = null,
+    val locator: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val sourceName: String? = null,       // e.g. "BNetzA", "Callook", "QRZ.com"
+    val official: Boolean? = null         // true = official authority, false = community
 )
 
 /** Purely offline-derived facts about a call sign. */

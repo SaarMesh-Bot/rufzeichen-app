@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.ui.SearchViewModel
 import de.hamlookup.rufzeichen.ui.common.EmptyState
+import de.hamlookup.rufzeichen.ui.common.ProvenanceChip
 import de.hamlookup.rufzeichen.ui.common.SourceChip
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -53,7 +54,7 @@ fun SearchScreen(
             value = state.query,
             onValueChange = viewModel::onQueryChange,
             label = { Text("Rufzeichen") },
-            placeholder = { Text("z. B. DL1ABC oder db2*k") },
+            placeholder = { Text("z. B. DL1ABC, W1AW oder db2*k") },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -138,11 +139,17 @@ fun CallsignCard(callsign: Callsign, onClick: () -> Unit) {
                     modifier = Modifier.weight(1f)
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    callsign.sources.forEach { SourceChip(it) }
+                    val src = callsign.sourceName
+                    if (src != null) {
+                        ProvenanceChip(src, callsign.official)
+                    } else {
+                        callsign.sources.forEach { SourceChip(it) }
+                    }
                 }
             }
             val subtitle = callsign.holderName
                 ?: callsign.licenceClass
+                ?: callsign.country
                 ?: callsign.analysis?.let { "${it.country} · ${it.germanClass ?: "Amateurfunk"}" }
             subtitle?.let {
                 Spacer(Modifier.height(4.dp))

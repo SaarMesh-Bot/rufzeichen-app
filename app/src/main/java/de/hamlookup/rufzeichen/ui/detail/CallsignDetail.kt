@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.ui.common.DetailRow
+import de.hamlookup.rufzeichen.ui.common.ProvenanceBadge
 import de.hamlookup.rufzeichen.ui.common.SectionTitle
 import de.hamlookup.rufzeichen.ui.common.SourceChip
 
@@ -58,21 +59,36 @@ fun CallsignDetailContent(
             }
         }
 
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            callsign.sources.forEach { SourceChip(it) }
+        // Provenance: an explicit official vs. community badge when we know the
+        // concrete source; otherwise the generic on-device/offline chips.
+        val src = callsign.sourceName
+        if (src != null) {
+            ProvenanceBadge(src, callsign.official)
+        } else {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                callsign.sources.forEach { SourceChip(it) }
+            }
         }
 
         Spacer(Modifier.height(12.dp))
 
         // Data from the sources
         val hasSourceData = callsign.holderName != null || callsign.licenceClass != null ||
-            callsign.qth != null || callsign.extra.isNotEmpty()
+            callsign.qth != null || callsign.licenseStatus != null ||
+            callsign.locator != null || callsign.extra.isNotEmpty()
         if (hasSourceData) {
             SectionTitle("Zuteilungsdaten")
             callsign.holderName?.let { DetailRow("Inhaber", it) }
             callsign.licenceClass?.let { DetailRow("Klasse", it) }
+            callsign.licenseStatus?.let { DetailRow("Status", it) }
             callsign.qth?.let { DetailRow("Standort", it) }
-            callsign.country?.let { DetailRow("Land", it) }
+            val land = when {
+                callsign.country != null && callsign.countryCode != null ->
+                    "${callsign.country} (${callsign.countryCode})"
+                else -> callsign.country
+            }
+            land?.let { DetailRow("Land", it) }
+            callsign.locator?.let { DetailRow("Locator", it) }
             // Any additional key/value pairs not already shown.
             val shown = setOf("Name", "Inhaber", "Klasse", "Ort", "QTH", "Standort", "Land")
             callsign.extra.forEach { (k, v) ->

@@ -10,12 +10,17 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
+const val DEFAULT_BACKEND_URL = "https://live.saarmesh.de/hamapi/api/v1"
+
 /** Holds the current, resolved settings snapshot. */
 data class Settings(
     val useBnetza: Boolean = true,
     val useHamQth: Boolean = false,
     val hamQthUser: String = "",
-    val hamQthPass: String = ""
+    val hamQthPass: String = "",
+    // International lookup via the backend (country detection + official/community).
+    val useBackend: Boolean = true,
+    val backendUrl: String = DEFAULT_BACKEND_URL
 )
 
 class SettingsRepository(private val context: Context) {
@@ -25,6 +30,8 @@ class SettingsRepository(private val context: Context) {
         val USE_HAMQTH = booleanPreferencesKey("use_hamqth")
         val HAMQTH_USER = stringPreferencesKey("hamqth_user")
         val HAMQTH_PASS = stringPreferencesKey("hamqth_pass")
+        val USE_BACKEND = booleanPreferencesKey("use_backend")
+        val BACKEND_URL = stringPreferencesKey("backend_url")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p ->
@@ -32,7 +39,9 @@ class SettingsRepository(private val context: Context) {
             useBnetza = p[Keys.USE_BNETZA] ?: true,
             useHamQth = p[Keys.USE_HAMQTH] ?: false,
             hamQthUser = p[Keys.HAMQTH_USER] ?: "",
-            hamQthPass = p[Keys.HAMQTH_PASS] ?: ""
+            hamQthPass = p[Keys.HAMQTH_PASS] ?: "",
+            useBackend = p[Keys.USE_BACKEND] ?: true,
+            backendUrl = (p[Keys.BACKEND_URL] ?: DEFAULT_BACKEND_URL).ifBlank { DEFAULT_BACKEND_URL }
         )
     }
 
@@ -42,6 +51,8 @@ class SettingsRepository(private val context: Context) {
             p[Keys.USE_HAMQTH] = settings.useHamQth
             p[Keys.HAMQTH_USER] = settings.hamQthUser
             p[Keys.HAMQTH_PASS] = settings.hamQthPass
+            p[Keys.USE_BACKEND] = settings.useBackend
+            p[Keys.BACKEND_URL] = settings.backendUrl
         }
     }
 }

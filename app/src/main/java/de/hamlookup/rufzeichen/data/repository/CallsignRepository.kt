@@ -10,6 +10,7 @@ import de.hamlookup.rufzeichen.data.local.FavoriteEntity
 import de.hamlookup.rufzeichen.data.local.HistoryEntity
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.data.model.DataSourceType
+import de.hamlookup.rufzeichen.data.remote.BackendDataSource
 import de.hamlookup.rufzeichen.data.remote.BnetzaDataSource
 import de.hamlookup.rufzeichen.data.remote.HamQthDataSource
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +31,8 @@ class CallsignRepository(
     private val dao: CallsignDao,
     private val settingsRepo: SettingsRepository,
     private val bnetza: BnetzaDataSource = BnetzaDataSource(),
-    private val hamQth: HamQthDataSource = HamQthDataSource()
+    private val hamQth: HamQthDataSource = HamQthDataSource(),
+    private val backend: BackendDataSource = BackendDataSource()
 ) {
 
     val favorites: Flow<List<Callsign>> =
@@ -65,20 +67,50 @@ class CallsignRepository(
         val analysis = CallsignAnalyzer.analyze(query)
         val settings = settingsRepo.settings.first()
         val online = isOnline()
+        val wildcard = query.contains('*')
         val used = mutableSetOf<DataSourceType>()
         val merged = LinkedHashMap<String, Callsign>()
+        var backendMessage: String? = null
+        var handledByBackend = false
 
         if (online) {
-            if (settings.useBnetza) {
-                val list = bnetza.search(query)
-                if (list.isNotEmpty()) used += DataSourceType.BNETZA
-                list.forEach { merge(merged, it) }
+            // 1) International backend first (single call signs only; the
+            //    wildcard search is a BNetzA-specific feature handled on-device).
+            if (settings.useBackend && !wildcard) {
+                val res = backend.lookup(settings.backendUrl, query)
+                when (res.status) {
+                    "ok" -> {
+                        res.callsign?.let { merge(merged, it); used += DataSourceType.BACKEND }
+                        handledByBackend = true
+                    }
+                    "not_found", "no_source", "invalid" -> {
+                        // A definite answer from the backend — do not double-query
+                        // on-device for the same call sign.
+                        handledByBackend = true
+                        backendMessage = res.message
+                    }
+                    else -> {
+                        // unverifiable / error -> fall through to on-device sources.
+                        handledByBackend = false
+                    }
+                }
             }
-            if (settings.useHamQth) {
-                val list = hamQth.search(query, settings.hamQthUser, settings.hamQthPass)
-                if (list.isNotEmpty()) used += DataSourceType.HAMQTH
-                list.forEach { merge(merged, it) }
+
+            // 2) On-device fallback (also the path for wildcard queries and when
+            //    the backend is disabled/unreachable). Existing behaviour.
+            if (!handledByBackend) {
+                if (settings.useBnetza) {
+                    val list = bnetza.search(query)
+                    if (list.isNotEmpty()) used += DataSourceType.BNETZA
+                    list.forEach { merge(merged, it) }
+                }
+                if (settings.useHamQth) {
+                    val list = hamQth.search(query, settings.hamQthUser, settings.hamQthPass)
+                    if (list.isNotEmpty()) used += DataSourceType.HAMQTH
+                    list.forEach { merge(merged, it) }
+                }
             }
+
             if (merged.isNotEmpty()) {
                 cacheResults(merged.values.toList())
             }
@@ -91,10 +123,9 @@ class CallsignRepository(
             if (merged.isNotEmpty()) used += DataSourceType.OFFLINE
         }
 
-        // Always attach offline analysis to every result; for exact single
-        // matches also to the specific one.
+        // Always attach offline analysis to every result; when nothing was found
+        // we still return the offline analysis so the user sees the country etc.
         val results = if (merged.isEmpty()) {
-            // No source data: still give the user the offline analysis.
             used += DataSourceType.OFFLINE
             listOf(
                 Callsign(
@@ -114,10 +145,9 @@ class CallsignRepository(
         dao.addHistory(HistoryEntity(query = query, resultCount = results.size))
 
         val message = when {
-            !online && used.contains(DataSourceType.OFFLINE) ->
-                "Offline – Ergebnisse aus lokalem Cache und Analyse."
-            online && used.isEmpty() ->
-                "Keine Online-Treffer – nur Offline-Analyse."
+            !online -> "Offline – Ergebnisse aus lokalem Cache und Analyse."
+            merged.isEmpty() && backendMessage != null -> backendMessage
+            online && used.isEmpty() -> "Keine Online-Treffer – nur Offline-Analyse."
             else -> null
         }
         return SearchOutcome(results, used, !online, message)
@@ -140,6 +170,13 @@ class CallsignRepository(
             licenceClass = existing.licenceClass ?: c.licenceClass,
             qth = existing.qth ?: c.qth,
             country = existing.country ?: c.country,
+            countryCode = existing.countryCode ?: c.countryCode,
+            licenseStatus = existing.licenseStatus ?: c.licenseStatus,
+            locator = existing.locator ?: c.locator,
+            latitude = existing.latitude ?: c.latitude,
+            longitude = existing.longitude ?: c.longitude,
+            sourceName = existing.sourceName ?: c.sourceName,
+            official = existing.official ?: c.official,
             extra = existing.extra + c.extra,
             sources = existing.sources + c.sources
         )
@@ -147,13 +184,15 @@ class CallsignRepository(
 
     private suspend fun cacheResults(list: List<Callsign>) {
         val entities = list.map { c ->
+            // Privacy: do not persist full street addresses in the local cache.
+            val cacheExtra = c.extra.filterKeys { !it.contains("Adresse", true) && !it.contains("address", true) }
             CachedCallsignEntity(
                 callsign = c.callsign.uppercase(),
                 holderName = c.holderName,
                 licenceClass = c.licenceClass,
                 qth = c.qth,
                 country = c.country,
-                extraJson = JSONObject(c.extra as Map<*, *>).toString(),
+                extraJson = JSONObject(cacheExtra as Map<*, *>).toString(),
                 sourcesCsv = c.sources.joinToString(",") { it.name }
             )
         }

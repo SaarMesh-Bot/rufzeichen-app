@@ -38,16 +38,27 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         Spacer(Modifier.height(12.dp))
 
         ToggleRow(
-            title = "BNetzA-Onlineabfrage",
-            subtitle = "Offizielle, tagesaktuelle Rufzeichensuche der Bundesnetzagentur (inoffiziell abgefragt).",
+            title = "Internationale Suche (Server)",
+            subtitle = "Erkennt das Land am Präfix und fragt automatisch die beste Quelle ab: " +
+                "offiziell für Deutschland (BNetzA) und USA (FCC/Callook). Andere Länder nur, " +
+                "wenn serverseitig eine Community-Quelle konfiguriert ist.",
+            checked = settings.useBackend,
+            onCheckedChange = { viewModel.update(settings.copy(useBackend = it)) }
+        )
+        HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+        ToggleRow(
+            title = "BNetzA-Onlineabfrage (Gerät)",
+            subtitle = "Direkte Abfrage der Bundesnetzagentur vom Gerät – auch für die " +
+                "Platzhalter-Suche (z. B. db2*k) und als Fallback ohne Server.",
             checked = settings.useBnetza,
             onCheckedChange = { viewModel.update(settings.copy(useBnetza = it)) }
         )
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
         ToggleRow(
-            title = "HamQTH (international)",
-            subtitle = "Weltweite Community-Datenbank. Kostenloses Konto erforderlich.",
+            title = "HamQTH (Gerät, international)",
+            subtitle = "Weltweite Community-Datenbank direkt vom Gerät. Kostenloses Konto erforderlich.",
             checked = settings.useHamQth,
             onCheckedChange = { viewModel.update(settings.copy(useHamQth = it)) }
         )
@@ -84,9 +95,10 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 
         HorizontalDivider(Modifier.padding(vertical = 12.dp))
         Text(
-            "Hinweis: Die BNetzA bietet keine offizielle API. Die App fragt die öffentliche " +
-                "Suchmaske ab; ändert die Behörde ihre Website, kann diese Quelle vorübergehend ausfallen. " +
-                "Die App bleibt dann über Cache und Offline-Analyse nutzbar.",
+            "Hinweis: Offizielle Halterdaten stammen aus den amtlichen Quellen (BNetzA, FCC). " +
+                "Community-Datenbanken sind als solche gekennzeichnet und werden nie als „behördlich " +
+                "bestätigt“ dargestellt. Ein vorübergehender Ausfall einer Quelle bedeutet nicht, " +
+                "dass ein Rufzeichen nicht existiert.",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

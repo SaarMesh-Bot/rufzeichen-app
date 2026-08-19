@@ -20,6 +20,7 @@ fun SourceChip(source: DataSourceType, modifier: Modifier = Modifier) {
     val color = when (source) {
         DataSourceType.BNETZA -> MaterialTheme.colorScheme.primary
         DataSourceType.HAMQTH -> MaterialTheme.colorScheme.tertiary
+        DataSourceType.BACKEND -> MaterialTheme.colorScheme.primary
         DataSourceType.OFFLINE -> MaterialTheme.colorScheme.secondary
     }
     Surface(
@@ -30,6 +31,63 @@ fun SourceChip(source: DataSourceType, modifier: Modifier = Modifier) {
     ) {
         Text(
             text = source.label,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+/**
+ * Provenance badge that makes the trust level explicit: an official authority
+ * vs. a community database. Never claims "official" for community data.
+ */
+@Composable
+fun ProvenanceBadge(sourceName: String, official: Boolean?, modifier: Modifier = Modifier) {
+    val color = when (official) {
+        true -> MaterialTheme.colorScheme.primary
+        false -> MaterialTheme.colorScheme.tertiary
+        else -> MaterialTheme.colorScheme.secondary
+    }
+    val text = when (official) {
+        true -> "✓ Offizielle Quelle: $sourceName"
+        false -> "Community-Daten: $sourceName"
+        else -> "Quelle: $sourceName"
+    }
+    Surface(
+        color = color.copy(alpha = 0.14f),
+        contentColor = color,
+        shape = RoundedCornerShape(8.dp),
+        modifier = modifier
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+/** Compact provenance chip for list cards. */
+@Composable
+fun ProvenanceChip(sourceName: String, official: Boolean?, modifier: Modifier = Modifier) {
+    val color = when (official) {
+        true -> MaterialTheme.colorScheme.primary
+        false -> MaterialTheme.colorScheme.tertiary
+        else -> MaterialTheme.colorScheme.secondary
+    }
+    val prefix = if (official == true) "✓ " else ""
+    Surface(
+        color = color.copy(alpha = 0.15f),
+        contentColor = color,
+        shape = RoundedCornerShape(6.dp),
+        modifier = modifier
+    ) {
+        Text(
+            text = "$prefix$sourceName",
             style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
             maxLines = 1,
