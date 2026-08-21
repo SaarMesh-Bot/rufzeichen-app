@@ -15,18 +15,11 @@ import java.util.concurrent.TimeUnit
  * Queries the official Bundesnetzagentur amateur radio call sign search
  * (an ASP.NET WebForms page) and scrapes the result table.
  *
- * IMPORTANT: The BNetzA does not offer an official API. This class talks to
- * the public HTML search form at
- * https://ans.bundesnetzagentur.de/Amateurfunk/Rufzeichen.aspx by
- *   1. fetching the page to capture the hidden ViewState fields,
- *   2. posting the search term back with those fields, and
- *   3. parsing the returned HTML result table.
- *
  * The result table has the columns:
  *   Rufzeichen | K | p. Rufz. | Inhaber | Betriebsort
- * where "K" is the licence class (A / E / N). Parsing keys off these header
- * labels, so small layout changes are tolerated. All failures are reported as
- * an empty result rather than crashing the app.
+ * where "K" is the licence class. The "Inhaber" cell is "Name; Anschrift" in a
+ * single field, so we split off the name and keep the full address separately.
+ * Parsing keys off the header labels; all failures return an empty result.
  */
 class BnetzaDataSource(
     private val client: OkHttpClient = defaultClient()
@@ -41,33 +34,24 @@ class BnetzaDataSource(
             .build()
 
         private val CALL_REGEX = Regex("^[A-Z0-9]{1,3}[0-9][A-Z0-9]{0,4}$")
+        private val CITY_REGEX = Regex("\\b\\d{4,5}\\s+([A-Za-zÄÖÜäöüß .\\-]+)$")
     }
 
-    /**
-     * Searches for [query] (a call sign, '*' allowed as a single-char wildcard).
-     * Returns the parsed results, or an empty list if the source is unreachable
-     * or returns nothing.
-     */
     suspend fun search(query: String): List<Callsign> = withContext(Dispatchers.IO) {
         try {
             val page = get(BASE_URL) ?: return@withContext emptyList()
             val doc = Jsoup.parse(page, BASE_URL)
             val form = doc.selectFirst("form") ?: return@withContext emptyList()
 
-            // Collect all hidden inputs (ViewState etc.).
             val formBuilder = FormBody.Builder()
             form.select("input[type=hidden]").forEach { input ->
                 val name = input.attr("name")
                 if (name.isNotEmpty()) formBuilder.add(name, input.attr("value"))
             }
-
-            // Find the search text field (name is "Text1", but discover it dynamically).
             val textInput = form.select("input[type=text]").firstOrNull()
                 ?: form.select("input").firstOrNull { it.attr("name").contains("text", true) }
             val fieldName = textInput?.attr("name") ?: return@withContext emptyList()
             formBuilder.add(fieldName, query)
-
-            // Include the submit button (name "Bt_Suche") if present.
             form.select("input[type=submit]").firstOrNull()?.let { submit ->
                 val n = submit.attr("name")
                 if (n.isNotEmpty()) formBuilder.add(n, submit.attr("value").ifEmpty { "Suche starten" })
@@ -85,7 +69,6 @@ class BnetzaDataSource(
             val rows = table.select("tr")
             if (rows.isEmpty()) continue
 
-            // Locate the header row: contains "Rufzeichen" plus one of the other columns.
             val headerRow = rows.firstOrNull { row ->
                 val texts = row.select("th, td").map { clean(it.text()) }
                 texts.any { it.equals("Rufzeichen", true) } &&
@@ -112,17 +95,29 @@ class BnetzaDataSource(
                 val call = cells.getOrNull(cCall)?.uppercase()?.takeIf { it.isNotBlank() } ?: continue
                 if (!CALL_REGEX.matches(call)) continue
 
+                // "Inhaber" = "Name; Anschrift" -> split name from address.
+                val holderRaw = cells.getOrNull(cHolder)?.takeIf { it.isNotBlank() }
+                val name = holderRaw?.substringBefore(";")?.trim()?.takeIf { it.isNotBlank() }
+                val betriebsort = cells.getOrNull(cQth)?.takeIf { it.isNotBlank() }
+                val city = betriebsort?.let { cityFrom(it) }
+
                 val extra = LinkedHashMap<String, String>()
                 cells.getOrNull(cPrev)?.takeIf { it.isNotBlank() }?.let { extra["Pers. Rufzeichen"] = it }
+                if (betriebsort != null) extra["Adresse"] = betriebsort
+
                 val classCode = cells.getOrNull(cClass)?.takeIf { it.isNotBlank() }
 
                 results += Callsign(
                     callsign = call,
-                    holderName = cells.getOrNull(cHolder)?.takeIf { it.isNotBlank() },
+                    holderName = name,
                     licenceClass = classCode?.let { classLabel(it) },
-                    qth = cells.getOrNull(cQth)?.takeIf { it.isNotBlank() },
+                    qth = city ?: betriebsort,
+                    country = "Deutschland",
+                    countryCode = "DE",
                     extra = extra,
-                    sources = setOf(DataSourceType.BNETZA)
+                    sources = setOf(DataSourceType.BNETZA),
+                    sourceName = "BNetzA",
+                    official = true
                 )
             }
             if (results.isNotEmpty()) return results
@@ -130,7 +125,9 @@ class BnetzaDataSource(
         return emptyList()
     }
 
-    /** Maps the single-letter BNetzA class code to a readable label. */
+    private fun cityFrom(address: String): String? =
+        CITY_REGEX.find(address.trim())?.groupValues?.get(1)?.trim()?.takeIf { it.isNotBlank() }
+
     private fun classLabel(code: String): String = when (code.trim().uppercase()) {
         "A" -> "Klasse A"
         "E" -> "Klasse E (Einsteiger)"
@@ -138,15 +135,12 @@ class BnetzaDataSource(
         else -> code.trim()
     }
 
-    /** Normalises all whitespace, including non-breaking spaces, from scraped cells. */
     private fun clean(s: String): String =
         buildString { s.forEach { append(if (it.isWhitespace()) ' ' else it) } }
             .replace(Regex(" +"), " ").trim()
 
     private fun get(url: String): String? {
-        val req = Request.Builder().url(url)
-            .header("User-Agent", USER_AGENT)
-            .build()
+        val req = Request.Builder().url(url).header("User-Agent", USER_AGENT).build()
         client.newCall(req).execute().use { resp ->
             return if (resp.isSuccessful) resp.body?.string() else null
         }
@@ -154,10 +148,7 @@ class BnetzaDataSource(
 
     private fun post(url: String, body: okhttp3.RequestBody): String? {
         val req = Request.Builder().url(url)
-            .header("User-Agent", USER_AGENT)
-            .header("Referer", url)
-            .post(body)
-            .build()
+            .header("User-Agent", USER_AGENT).header("Referer", url).post(body).build()
         client.newCall(req).execute().use { resp ->
             return if (resp.isSuccessful) resp.body?.string() else null
         }

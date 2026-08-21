@@ -147,7 +147,8 @@ fun CallsignCard(callsign: Callsign, onClick: () -> Unit) {
                     }
                 }
             }
-            val subtitle = callsign.holderName
+            val holder = callsign.holderName
+            val subtitle = holder
                 ?: callsign.licenceClass
                 ?: callsign.country
                 ?: callsign.analysis?.let { "${it.country} · ${it.germanClass ?: "Amateurfunk"}" }
@@ -156,7 +157,10 @@ fun CallsignCard(callsign: Callsign, onClick: () -> Unit) {
                 Text(it, style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            callsign.qth?.let {
+            val secondLine = if (holder != null)
+                listOfNotNull(callsign.licenceClass, callsign.qth).joinToString(" · ").ifBlank { null }
+            else callsign.qth
+            secondLine?.let {
                 Text(it, style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

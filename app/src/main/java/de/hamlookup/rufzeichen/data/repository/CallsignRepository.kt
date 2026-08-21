@@ -210,13 +210,26 @@ class CallsignRepository(
 
 // ---- mapping extensions ----
 
+private val CITY_RE = Regex("\\b\\d{4,5}\\s+([A-Za-zÄÖÜäöüß .\\-]+)$")
+
+/** Old on-device favourites stored "Name; Anschrift" in one field. Clean it. */
+private fun cleanHolderName(v: String?): String? =
+    v?.substringBefore(";")?.trim()?.takeIf { it.isNotBlank() }
+
+/** Reduce a full address to its city part; keep original if no PLZ+city found. */
+private fun cleanCity(v: String?): String? {
+    if (v.isNullOrBlank()) return null
+    return CITY_RE.find(v.trim())?.groupValues?.get(1)?.trim()?.takeIf { it.isNotBlank() } ?: v
+}
+
 private fun FavoriteEntity.toCallsign(): Callsign = Callsign(
     callsign = callsign,
-    holderName = holderName,
+    holderName = cleanHolderName(holderName),
     licenceClass = licenceClass,
-    qth = qth,
+    qth = cleanCity(qth),
     country = country,
-    sources = emptySet()
+    sources = emptySet(),
+    analysis = CallsignAnalyzer.analyze(callsign)
 )
 
 private fun CachedCallsignEntity.toCallsign(): Callsign {
@@ -230,9 +243,9 @@ private fun CachedCallsignEntity.toCallsign(): Callsign {
     }.toSet()
     return Callsign(
         callsign = callsign,
-        holderName = holderName,
+        holderName = cleanHolderName(holderName),
         licenceClass = licenceClass,
-        qth = qth,
+        qth = cleanCity(qth),
         country = country,
         extra = extra,
         sources = sources
