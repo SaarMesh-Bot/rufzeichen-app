@@ -102,6 +102,14 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+
+        HorizontalDivider(Modifier.padding(vertical = 12.dp))
+        Text(
+            "Geodaten © OpenStreetMap-Mitwirkende (ODbL). Der QTH-Locator wird " +
+                "serverseitig aus der Anschrift über OpenStreetMap/Nominatim ermittelt.",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
