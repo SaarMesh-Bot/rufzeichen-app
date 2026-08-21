@@ -7,14 +7,14 @@ plugins {
 
 android {
     namespace = "de.hamlookup.rufzeichen"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "de.hamlookup.rufzeichen"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 4
-        versionName = "1.4"
+        targetSdk = 36
+        versionCode = 5
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }

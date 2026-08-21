@@ -21,6 +21,14 @@ jobs:
       - name: Gradle einrichten
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Android SDK 36 sicherstellen
+        run: |
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKM" ] || SDKM="$(command -v sdkmanager || true)"
+          if [ -n "$SDKM" ]; then
+            yes | "$SDKM" "platforms;android-36" "build-tools;36.0.0" >/dev/null 2>&1 || true
+          fi
+
       - name: gradlew ausführbar machen
         run: chmod +x ./gradlew
 
