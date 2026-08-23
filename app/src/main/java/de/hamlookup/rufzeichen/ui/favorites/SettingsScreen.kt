@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -16,10 +17,17 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.hamlookup.rufzeichen.ui.SettingsViewModel
@@ -43,21 +51,21 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
+        PersistedTextField(
             value = settings.ownCallsign,
-            onValueChange = { viewModel.update(settings.copy(ownCallsign = it.uppercase())) },
-            label = { Text("Eigenes Rufzeichen (optional)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            onCommit = { viewModel.update(settings.copy(ownCallsign = it)) },
+            label = "Eigenes Rufzeichen (optional)",
+            capitalize = true,
+            transform = { it.uppercase() }
         )
         Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
+        PersistedTextField(
             value = settings.ownLocator,
-            onValueChange = { viewModel.update(settings.copy(ownLocator = it.uppercase().replace(" ", ""))) },
-            label = { Text("Eigener Locator (Maidenhead)") },
-            placeholder = { Text("z. B. JN39KF") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            onCommit = { viewModel.update(settings.copy(ownLocator = it)) },
+            label = "Eigener Locator (Maidenhead)",
+            placeholder = "z. B. JN39KF",
+            capitalize = true,
+            transform = { it.uppercase().replace(" ", "") }
         )
         HorizontalDivider(Modifier.padding(vertical = 12.dp))
 
@@ -93,21 +101,17 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 
         if (settings.useHamQth) {
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
+            PersistedTextField(
                 value = settings.hamQthUser,
-                onValueChange = { viewModel.update(settings.copy(hamQthUser = it)) },
-                label = { Text("HamQTH-Benutzername") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                onCommit = { viewModel.update(settings.copy(hamQthUser = it)) },
+                label = "HamQTH-Benutzername"
             )
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
+            PersistedTextField(
                 value = settings.hamQthPass,
-                onValueChange = { viewModel.update(settings.copy(hamQthPass = it)) },
-                label = { Text("HamQTH-Passwort") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
+                onCommit = { viewModel.update(settings.copy(hamQthPass = it)) },
+                label = "HamQTH-Passwort",
+                password = true
             )
         }
 
@@ -139,6 +143,50 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+}
+
+/**
+ * Text field backed by *local* state so typing is smooth. The persisted value
+ * (from DataStore, delivered asynchronously) is only synced into the field when
+ * the field is not focused – this prevents the cursor from jumping and keeps
+ * fast keystrokes (incl. digits) from being dropped by the async round-trip.
+ */
+@Composable
+private fun PersistedTextField(
+    value: String,
+    onCommit: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    placeholder: String? = null,
+    password: Boolean = false,
+    capitalize: Boolean = false,
+    transform: (String) -> String = { it }
+) {
+    var text by remember { mutableStateOf(value) }
+    var focused by remember { mutableStateOf(false) }
+
+    // Adopt external changes only while the user is not editing this field.
+    LaunchedEffect(value, focused) {
+        if (!focused && text != value) text = value
+    }
+
+    OutlinedTextField(
+        value = text,
+        onValueChange = {
+            val t = transform(it)
+            text = t
+            onCommit(t)
+        },
+        label = { Text(label) },
+        placeholder = placeholder?.let { { Text(it) } },
+        singleLine = true,
+        visualTransformation = if (password) PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardOptions = if (capitalize)
+            KeyboardOptions(capitalization = KeyboardCapitalization.Characters) else KeyboardOptions.Default,
+        modifier = modifier
+            .fillMaxWidth()
+            .onFocusChanged { focused = it.isFocused }
+    )
 }
 
 @Composable
