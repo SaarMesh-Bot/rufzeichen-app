@@ -34,6 +34,33 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
+        Text("Mein Standort", style = MaterialTheme.typography.headlineSmall)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Für Entfernung und Peilung zu gesuchten Stationen. Der Locator ist ein " +
+                "Maidenhead-Kenner (z. B. JN39 oder JN39KF).",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = settings.ownCallsign,
+            onValueChange = { viewModel.update(settings.copy(ownCallsign = it.uppercase())) },
+            label = { Text("Eigenes Rufzeichen (optional)") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = settings.ownLocator,
+            onValueChange = { viewModel.update(settings.copy(ownLocator = it.uppercase().replace(" ", ""))) },
+            label = { Text("Eigener Locator (Maidenhead)") },
+            placeholder = { Text("z. B. JN39KF") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        HorizontalDivider(Modifier.padding(vertical = 12.dp))
+
         Text("Datenquellen", style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(12.dp))
 

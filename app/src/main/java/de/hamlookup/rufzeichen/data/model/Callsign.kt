@@ -48,5 +48,8 @@ data class CallsignAnalysis(
     val countryCode: String,
     val isGerman: Boolean,
     val germanClass: String? = null,
+    val continent: String? = null,      // EU, AS, NA, SA, AF, OC, AN
+    val cqZone: Int? = null,            // nominal CQ zone (null if it varies)
+    val ituZone: Int? = null,           // nominal ITU zone (null if it varies)
     val notes: List<String> = emptyList()
 )

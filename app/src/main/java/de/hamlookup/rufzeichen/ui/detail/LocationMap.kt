@@ -96,3 +96,31 @@ fun maidenheadToCenter(locator: String?): Pair<Double, Double>? {
         null
     }
 }
+
+// --------------------------------------------------------------------------
+// Great-circle helpers for distance & bearing between two points.
+// --------------------------------------------------------------------------
+
+private const val EARTH_RADIUS_KM = 6371.0
+
+/** Great-circle (short-path) distance in kilometres. */
+fun greatCircleKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    val dLat = Math.toRadians(lat2 - lat1)
+    val dLon = Math.toRadians(lon2 - lon1)
+    val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return EARTH_RADIUS_KM * c
+}
+
+/** Initial bearing (degrees, 0..360) from point 1 to point 2 along the short path. */
+fun initialBearing(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    val φ1 = Math.toRadians(lat1)
+    val φ2 = Math.toRadians(lat2)
+    val Δλ = Math.toRadians(lon2 - lon1)
+    val y = Math.sin(Δλ) * Math.cos(φ2)
+    val x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ)
+    val θ = Math.atan2(y, x)
+    return (Math.toDegrees(θ) + 360.0) % 360.0
+}

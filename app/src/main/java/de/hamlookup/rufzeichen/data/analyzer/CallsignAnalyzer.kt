@@ -4,54 +4,67 @@ import de.hamlookup.rufzeichen.data.model.CallsignAnalysis
 
 /**
  * Offline call sign analysis. Splits a call sign into prefix / number / suffix,
- * derives the ITU country from the prefix, and — for German call signs — the
- * licence class and purpose from the official "Rufzeichenplan" (BNetzA
- * Vfg. 15/2025, gültig ab 01.04.2025).
+ * derives the ITU country (DXCC entity) from the prefix, its continent and –
+ * where an entity sits in a single zone – its nominal CQ/ITU zone, and for
+ * German call signs the licence class and purpose from the official
+ * "Rufzeichenplan" (BNetzA Vfg. 15/2025, gültig ab 01.04.2025).
  *
  * Important: the German class depends on the *Rufzeichenreihe* = prefix + digit,
  * not on the two-letter prefix alone. E.g. within the DN block:
  *   DN1–DN6 = Ausbildungsrufzeichen (Klasse A), DN7–DN8 = Ausbildung (Klasse E),
  *   DN9 = Klasse N, DN0 = Klubstation (Klasse E).
  *
+ * Zones: large entities (USA, Kanada, Russland, Australien …) span several CQ/ITU
+ * zones. For those the zone is left null (not shown) rather than guessed; the
+ * continent is still given where it is unambiguous.
+ *
  * This works entirely without network access and is the always-available base
  * layer of every lookup. The authoritative class still comes from BNetzA online.
  */
 object CallsignAnalyzer {
 
-    private data class PrefixRange(val prefix: String, val country: String, val code: String)
+    private data class PrefixRange(
+        val prefix: String,
+        val country: String,
+        val code: String,
+        val continent: String? = null,
+        val cq: Int? = null,
+        val itu: Int? = null
+    )
 
     // Country resolution (longest-match). German blocks all map to DE.
     private val prefixTable: List<PrefixRange> = listOf(
-        PrefixRange("DA", "Deutschland", "DE"), PrefixRange("DB", "Deutschland", "DE"),
-        PrefixRange("DC", "Deutschland", "DE"), PrefixRange("DD", "Deutschland", "DE"),
-        PrefixRange("DF", "Deutschland", "DE"), PrefixRange("DG", "Deutschland", "DE"),
-        PrefixRange("DH", "Deutschland", "DE"), PrefixRange("DJ", "Deutschland", "DE"),
-        PrefixRange("DK", "Deutschland", "DE"), PrefixRange("DL", "Deutschland", "DE"),
-        PrefixRange("DM", "Deutschland", "DE"), PrefixRange("DN", "Deutschland", "DE"),
-        PrefixRange("DO", "Deutschland", "DE"), PrefixRange("DP", "Deutschland", "DE"),
-        PrefixRange("DQ", "Deutschland", "DE"), PrefixRange("DR", "Deutschland", "DE"),
-        PrefixRange("OE", "Österreich", "AT"), PrefixRange("HB9", "Schweiz", "CH"),
-        PrefixRange("HB0", "Liechtenstein", "LI"),
-        PrefixRange("PA", "Niederlande", "NL"), PrefixRange("PB", "Niederlande", "NL"),
-        PrefixRange("PD", "Niederlande", "NL"), PrefixRange("PE", "Niederlande", "NL"),
-        PrefixRange("ON", "Belgien", "BE"), PrefixRange("LX", "Luxemburg", "LU"),
-        PrefixRange("F", "Frankreich", "FR"), PrefixRange("G", "Großbritannien", "GB"),
-        PrefixRange("M", "Großbritannien", "GB"), PrefixRange("2E", "Großbritannien", "GB"),
-        PrefixRange("EI", "Irland", "IE"), PrefixRange("EA", "Spanien", "ES"),
-        PrefixRange("CT", "Portugal", "PT"), PrefixRange("I", "Italien", "IT"),
-        PrefixRange("SP", "Polen", "PL"), PrefixRange("OK", "Tschechien", "CZ"),
-        PrefixRange("OM", "Slowakei", "SK"), PrefixRange("HA", "Ungarn", "HU"),
-        PrefixRange("HG", "Ungarn", "HU"), PrefixRange("OZ", "Dänemark", "DK"),
-        PrefixRange("SM", "Schweden", "SE"), PrefixRange("LA", "Norwegen", "NO"),
-        PrefixRange("OH", "Finnland", "FI"), PrefixRange("SV", "Griechenland", "GR"),
-        PrefixRange("TA", "Türkei", "TR"), PrefixRange("UA", "Russland", "RU"),
-        PrefixRange("UR", "Ukraine", "UA"),
-        PrefixRange("K", "USA", "US"), PrefixRange("N", "USA", "US"),
-        PrefixRange("W", "USA", "US"), PrefixRange("AA", "USA", "US"),
-        PrefixRange("VE", "Kanada", "CA"), PrefixRange("VA", "Kanada", "CA"),
-        PrefixRange("JA", "Japan", "JP"), PrefixRange("VK", "Australien", "AU"),
-        PrefixRange("ZL", "Neuseeland", "NZ"), PrefixRange("PY", "Brasilien", "BR"),
-        PrefixRange("LU", "Argentinien", "AR"), PrefixRange("ZS", "Südafrika", "ZA")
+        PrefixRange("DA", "Deutschland", "DE", "EU", 14, 28), PrefixRange("DB", "Deutschland", "DE", "EU", 14, 28),
+        PrefixRange("DC", "Deutschland", "DE", "EU", 14, 28), PrefixRange("DD", "Deutschland", "DE", "EU", 14, 28),
+        PrefixRange("DF", "Deutschland", "DE", "EU", 14, 28), PrefixRange("DG", "Deutschland", "DE", "EU", 14, 28),
+        PrefixRange("DH", "Deutschland", "DE", "EU", 14, 28), PrefixRange("DJ", "Deutschland", "DE", "EU", 14, 28),
+        PrefixRange("DK", "Deutschland", "DE", "EU", 14, 28), PrefixRange("DL", "Deutschland", "DE", "EU", 14, 28),
+        PrefixRange("DM", "Deutschland", "DE", "EU", 14, 28), PrefixRange("DN", "Deutschland", "DE", "EU", 14, 28),
+        PrefixRange("DO", "Deutschland", "DE", "EU", 14, 28), PrefixRange("DP", "Deutschland", "DE", "EU", 14, 28),
+        PrefixRange("DQ", "Deutschland", "DE", "EU", 14, 28), PrefixRange("DR", "Deutschland", "DE", "EU", 14, 28),
+        PrefixRange("OE", "Österreich", "AT", "EU", 15, 28),
+        PrefixRange("HB9", "Schweiz", "CH", "EU", 14, 28),
+        PrefixRange("HB0", "Liechtenstein", "LI", "EU", 14, 28),
+        PrefixRange("PA", "Niederlande", "NL", "EU", 14, 27), PrefixRange("PB", "Niederlande", "NL", "EU", 14, 27),
+        PrefixRange("PD", "Niederlande", "NL", "EU", 14, 27), PrefixRange("PE", "Niederlande", "NL", "EU", 14, 27),
+        PrefixRange("ON", "Belgien", "BE", "EU", 14, 27), PrefixRange("LX", "Luxemburg", "LU", "EU", 14, 27),
+        PrefixRange("F", "Frankreich", "FR", "EU", 14, 27), PrefixRange("G", "Großbritannien", "GB", "EU", 14, 27),
+        PrefixRange("M", "Großbritannien", "GB", "EU", 14, 27), PrefixRange("2E", "Großbritannien", "GB", "EU", 14, 27),
+        PrefixRange("EI", "Irland", "IE", "EU", 14, 27), PrefixRange("EA", "Spanien", "ES", "EU", 14, 37),
+        PrefixRange("CT", "Portugal", "PT", "EU", 14, 37), PrefixRange("I", "Italien", "IT", "EU", 15, 28),
+        PrefixRange("SP", "Polen", "PL", "EU", 15, 28), PrefixRange("OK", "Tschechien", "CZ", "EU", 15, 28),
+        PrefixRange("OM", "Slowakei", "SK", "EU", 15, 28), PrefixRange("HA", "Ungarn", "HU", "EU", 15, 28),
+        PrefixRange("HG", "Ungarn", "HU", "EU", 15, 28), PrefixRange("OZ", "Dänemark", "DK", "EU", 14, 18),
+        PrefixRange("SM", "Schweden", "SE", "EU", 14, 18), PrefixRange("LA", "Norwegen", "NO", "EU", 14, 18),
+        PrefixRange("OH", "Finnland", "FI", "EU", 15, 18), PrefixRange("SV", "Griechenland", "GR", "EU", 20, 28),
+        PrefixRange("TA", "Türkei", "TR", "AS", 20, 39), PrefixRange("UA", "Russland", "RU", null, null, null),
+        PrefixRange("UR", "Ukraine", "UA", "EU", 16, 29),
+        PrefixRange("K", "USA", "US", "NA", null, null), PrefixRange("N", "USA", "US", "NA", null, null),
+        PrefixRange("W", "USA", "US", "NA", null, null), PrefixRange("AA", "USA", "US", "NA", null, null),
+        PrefixRange("VE", "Kanada", "CA", "NA", null, null), PrefixRange("VA", "Kanada", "CA", "NA", null, null),
+        PrefixRange("JA", "Japan", "JP", "AS", 25, 45), PrefixRange("VK", "Australien", "AU", "OC", null, null),
+        PrefixRange("ZL", "Neuseeland", "NZ", "OC", 32, 60), PrefixRange("PY", "Brasilien", "BR", "SA", 11, null),
+        PrefixRange("LU", "Argentinien", "AR", "SA", 13, null), PrefixRange("ZS", "Südafrika", "ZA", "AF", 38, 57)
     )
 
     /** German licence class (A/E/N) + purpose code per Rufzeichenreihe (prefix+digit). */
@@ -149,6 +162,9 @@ object CallsignAnalyzer {
             countryCode = range?.code ?: "??",
             isGerman = isGerman,
             germanClass = germanClass,
+            continent = range?.continent,
+            cqZone = range?.cq,
+            ituZone = range?.itu,
             notes = notes
         )
     }

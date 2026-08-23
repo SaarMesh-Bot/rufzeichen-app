@@ -45,6 +45,7 @@ fun MainScreen(factory: AppViewModelFactory) {
     val searchVm: SearchViewModel = viewModel(factory = factory)
     val favVm: FavoritesViewModel = viewModel(factory = factory)
     val settingsVm: SettingsViewModel = viewModel(factory = factory)
+    val settings by settingsVm.settings.collectAsStateWithLifecycle()
 
     var tab by remember { mutableStateOf(Tab.Search) }
     var detail by remember { mutableStateOf<Callsign?>(null) }
@@ -86,6 +87,7 @@ fun MainScreen(factory: AppViewModelFactory) {
             CallsignDetailContent(
                 callsign = selected,
                 isFavorite = isFav,
+                ownLocator = settings.ownLocator.ifBlank { null },
                 onToggleFavorite = { makeFav -> searchVm.setFavorite(selected, makeFav) }
             )
         }

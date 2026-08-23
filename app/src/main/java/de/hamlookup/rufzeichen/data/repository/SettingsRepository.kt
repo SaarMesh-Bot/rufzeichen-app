@@ -20,7 +20,10 @@ data class Settings(
     val hamQthPass: String = "",
     // International lookup via the backend (country detection + official/community).
     val useBackend: Boolean = true,
-    val backendUrl: String = DEFAULT_BACKEND_URL
+    val backendUrl: String = DEFAULT_BACKEND_URL,
+    // Own station profile (for distance/bearing). Locator is a Maidenhead grid.
+    val ownCallsign: String = "",
+    val ownLocator: String = ""
 )
 
 class SettingsRepository(private val context: Context) {
@@ -32,6 +35,8 @@ class SettingsRepository(private val context: Context) {
         val HAMQTH_PASS = stringPreferencesKey("hamqth_pass")
         val USE_BACKEND = booleanPreferencesKey("use_backend")
         val BACKEND_URL = stringPreferencesKey("backend_url")
+        val OWN_CALLSIGN = stringPreferencesKey("own_callsign")
+        val OWN_LOCATOR = stringPreferencesKey("own_locator")
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p ->
@@ -41,7 +46,9 @@ class SettingsRepository(private val context: Context) {
             hamQthUser = p[Keys.HAMQTH_USER] ?: "",
             hamQthPass = p[Keys.HAMQTH_PASS] ?: "",
             useBackend = p[Keys.USE_BACKEND] ?: true,
-            backendUrl = (p[Keys.BACKEND_URL] ?: DEFAULT_BACKEND_URL).ifBlank { DEFAULT_BACKEND_URL }
+            backendUrl = (p[Keys.BACKEND_URL] ?: DEFAULT_BACKEND_URL).ifBlank { DEFAULT_BACKEND_URL },
+            ownCallsign = p[Keys.OWN_CALLSIGN] ?: "",
+            ownLocator = p[Keys.OWN_LOCATOR] ?: ""
         )
     }
 
@@ -53,6 +60,8 @@ class SettingsRepository(private val context: Context) {
             p[Keys.HAMQTH_PASS] = settings.hamQthPass
             p[Keys.USE_BACKEND] = settings.useBackend
             p[Keys.BACKEND_URL] = settings.backendUrl
+            p[Keys.OWN_CALLSIGN] = settings.ownCallsign
+            p[Keys.OWN_LOCATOR] = settings.ownLocator
         }
     }
 }
