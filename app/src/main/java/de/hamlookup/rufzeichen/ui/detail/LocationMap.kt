@@ -7,15 +7,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.CopyrightOverlay
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polyline
 
 /**
  * A small interactive OpenStreetMap view (osmdroid) centred on [lat]/[lon] with
- * a marker at the position. Pan/zoom enabled; the OSM copyright overlay is drawn
- * as required by the tile usage policy.
+ * a marker at the position. If [fromLat]/[fromLon] are given (the user's own
+ * QTH), a great-circle line is drawn from there to the station, a second marker
+ * marks the own location, and the view is zoomed to fit both points.
+ * Pan/zoom enabled; the OSM copyright overlay is drawn as required by the tile
+ * usage policy.
  */
 @Composable
 fun LocationMap(
@@ -23,7 +28,9 @@ fun LocationMap(
     lon: Double,
     label: String?,
     modifier: Modifier = Modifier,
-    zoom: Double = 12.0
+    zoom: Double = 12.0,
+    fromLat: Double? = null,
+    fromLon: Double? = null
 ) {
     val context = LocalContext.current
     val mapView = remember {
@@ -35,7 +42,6 @@ fun LocationMap(
         }
     }
 
-    // Tie the MapView to the composition lifecycle to avoid leaks / stuck tiles.
     DisposableEffect(Unit) {
         mapView.onResume()
         onDispose {
@@ -48,17 +54,42 @@ fun LocationMap(
         modifier = modifier,
         factory = { mapView },
         update = { map ->
-            val point = GeoPoint(lat, lon)
-            map.controller.setZoom(zoom)
-            map.controller.setCenter(point)
-            // keep exactly one marker
-            map.overlays.removeAll { it is Marker }
-            val marker = Marker(map).apply {
-                position = point
+            val station = GeoPoint(lat, lon)
+            // reset our own overlays (keep the copyright overlay)
+            map.overlays.removeAll { it is Marker || it is Polyline }
+
+            val stationMarker = Marker(map).apply {
+                position = station
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                 title = label
             }
-            map.overlays.add(marker)
+            map.overlays.add(stationMarker)
+
+            val own = if (fromLat != null && fromLon != null) GeoPoint(fromLat, fromLon) else null
+            if (own != null) {
+                val line = Polyline().apply {
+                    setPoints(greatCircleGeoPoints(own.latitude, own.longitude, lat, lon))
+                    outlinePaint.color = android.graphics.Color.parseColor("#1E88E5")
+                    outlinePaint.strokeWidth = 6f
+                }
+                map.overlays.add(line)
+
+                val ownMarker = Marker(map).apply {
+                    position = own
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    title = "Dein Standort"
+                }
+                map.overlays.add(ownMarker)
+
+                // Fit both endpoints with a little padding once the view is laid out.
+                val box = BoundingBox.fromGeoPointsSafe(listOf(own, station))
+                map.post {
+                    runCatching { map.zoomToBoundingBox(box.increaseByScale(1.6f), false, 48) }
+                }
+            } else {
+                map.controller.setZoom(zoom)
+                map.controller.setCenter(station)
+            }
             map.invalidate()
         }
     )
@@ -66,9 +97,7 @@ fun LocationMap(
 
 /**
  * Convert a Maidenhead locator (4 or 6 chars) to the centre coordinate of its
- * square/subsquare. Returns null for malformed input. Used as a fallback when
- * the backend supplied a locator but no explicit lat/lon (e.g. older cached
- * records).
+ * square/subsquare. Returns null for malformed input.
  */
 fun maidenheadToCenter(locator: String?): Pair<Double, Double>? {
     val loc = locator?.trim()?.uppercase() ?: return null
@@ -82,11 +111,9 @@ fun maidenheadToCenter(locator: String?): Pair<Double, Double>? {
         if (loc.length >= 6 && loc[4].isLetter() && loc[5].isLetter()) {
             lon += (loc[4].code - a) * (2.0 / 24.0)
             lat += (loc[5].code - a) * (1.0 / 24.0)
-            // centre of the subsquare
             lon += (2.0 / 24.0) / 2.0
             lat += (1.0 / 24.0) / 2.0
         } else {
-            // centre of the 2° x 1° square
             lon += 1.0
             lat += 0.5
         }
@@ -98,7 +125,7 @@ fun maidenheadToCenter(locator: String?): Pair<Double, Double>? {
 }
 
 // --------------------------------------------------------------------------
-// Great-circle helpers for distance & bearing between two points.
+// Great-circle helpers for distance, bearing and a curved connecting line.
 // --------------------------------------------------------------------------
 
 private const val EARTH_RADIUS_KM = 6371.0
@@ -123,4 +150,32 @@ fun initialBearing(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Doub
     val x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ)
     val θ = Math.atan2(y, x)
     return (Math.toDegrees(θ) + 360.0) % 360.0
+}
+
+/** Points along the great circle between two coordinates (for a curved line). */
+fun greatCircleGeoPoints(
+    lat1: Double, lon1: Double, lat2: Double, lon2: Double, segments: Int = 64
+): List<GeoPoint> {
+    val φ1 = Math.toRadians(lat1); val λ1 = Math.toRadians(lon1)
+    val φ2 = Math.toRadians(lat2); val λ2 = Math.toRadians(lon2)
+    val d = 2 * Math.asin(
+        Math.sqrt(
+            Math.sin((φ2 - φ1) / 2).let { it * it } +
+                Math.cos(φ1) * Math.cos(φ2) * Math.sin((λ2 - λ1) / 2).let { it * it }
+        )
+    )
+    if (d == 0.0 || d.isNaN()) return listOf(GeoPoint(lat1, lon1), GeoPoint(lat2, lon2))
+    val out = ArrayList<GeoPoint>(segments + 1)
+    for (i in 0..segments) {
+        val f = i.toDouble() / segments
+        val A = Math.sin((1 - f) * d) / Math.sin(d)
+        val B = Math.sin(f * d) / Math.sin(d)
+        val x = A * Math.cos(φ1) * Math.cos(λ1) + B * Math.cos(φ2) * Math.cos(λ2)
+        val y = A * Math.cos(φ1) * Math.sin(λ1) + B * Math.cos(φ2) * Math.sin(λ2)
+        val z = A * Math.sin(φ1) + B * Math.sin(φ2)
+        val φ = Math.atan2(z, Math.sqrt(x * x + y * y))
+        val λ = Math.atan2(y, x)
+        out.add(GeoPoint(Math.toDegrees(φ), Math.toDegrees(λ)))
+    }
+    return out
 }

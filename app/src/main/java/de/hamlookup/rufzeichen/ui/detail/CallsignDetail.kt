@@ -110,10 +110,13 @@ fun CallsignDetailContent(
                 Spacer(Modifier.height(12.dp))
                 SectionTitle("Standort (Karte)")
                 Spacer(Modifier.height(8.dp))
+                val ownMapPoint = maidenheadToCenter(ownLocator)
                 LocationMap(
                     lat = mapPoint.first,
                     lon = mapPoint.second,
                     label = callsign.holderName ?: callsign.callsign,
+                    fromLat = ownMapPoint?.first,
+                    fromLon = ownMapPoint?.second,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(240.dp)
@@ -122,7 +125,8 @@ fun CallsignDetailContent(
                 Spacer(Modifier.height(6.dp))
                 Text(
                     "Karte: © OpenStreetMap-Mitwirkende (ODbL). Position gemäß " +
-                        (if (callsign.latitude != null) "ermittelter Anschrift." else "QTH-Locator (ungefähr)."),
+                        (if (callsign.latitude != null) "ermittelter Anschrift." else "QTH-Locator (ungefähr).") +
+                        (if (ownMapPoint != null) " Blaue Linie: Großkreis von deinem Standort." else ""),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
