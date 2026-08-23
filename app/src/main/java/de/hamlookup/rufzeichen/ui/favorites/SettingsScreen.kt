@@ -40,7 +40,8 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         ToggleRow(
             title = "Internationale Suche (Server)",
             subtitle = "Erkennt das Land am Präfix und fragt automatisch die beste Quelle ab: " +
-                "offiziell für Deutschland (BNetzA) und USA (FCC/Callook). Andere Länder nur, " +
+                "offiziell für Deutschland (BNetzA), USA (FCC/Callook) und Kanada (ISED). " +
+                "Andere Länder nur, " +
                 "wenn serverseitig eine Community-Quelle konfiguriert ist.",
             checked = settings.useBackend,
             onCheckedChange = { viewModel.update(settings.copy(useBackend = it)) }

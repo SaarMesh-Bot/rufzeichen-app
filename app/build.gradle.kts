@@ -13,8 +13,8 @@ android {
         applicationId = "de.hamlookup.rufzeichen"
         minSdk = 24
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.6"
+        versionCode = 7
+        versionName = "1.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.okhttp)
     implementation(libs.jsoup)
+    implementation(libs.osmdroid.android)
     implementation(libs.kotlinx.coroutines.android)
 
     debugImplementation(libs.androidx.ui.tooling)

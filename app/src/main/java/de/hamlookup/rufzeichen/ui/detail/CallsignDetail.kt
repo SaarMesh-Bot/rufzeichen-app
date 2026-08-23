@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import de.hamlookup.rufzeichen.data.model.Callsign
@@ -94,6 +96,36 @@ fun CallsignDetailContent(
             callsign.extra.forEach { (k, v) ->
                 if (shown.none { k.contains(it, true) }) DetailRow(k, v)
             }
+
+            // Interactive OpenStreetMap view of the location, from explicit
+            // backend coordinates or (fallback) the centre of the locator grid.
+            val mapPoint: Pair<Double, Double>? = when {
+                callsign.latitude != null && callsign.longitude != null ->
+                    callsign.latitude to callsign.longitude
+                else -> maidenheadToCenter(callsign.locator)
+            }
+            if (mapPoint != null) {
+                Spacer(Modifier.height(12.dp))
+                SectionTitle("Standort (Karte)")
+                Spacer(Modifier.height(8.dp))
+                LocationMap(
+                    lat = mapPoint.first,
+                    lon = mapPoint.second,
+                    label = callsign.holderName ?: callsign.callsign,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(240.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Karte: © OpenStreetMap-Mitwirkende (ODbL). Position gemäß " +
+                        (if (callsign.latitude != null) "ermittelter Anschrift." else "QTH-Locator (ungefähr)."),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             HorizontalDivider(Modifier.padding(vertical = 12.dp))
         }
 
