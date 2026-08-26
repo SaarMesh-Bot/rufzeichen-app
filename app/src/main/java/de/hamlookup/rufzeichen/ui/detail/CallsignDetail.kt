@@ -175,6 +175,10 @@ fun CallsignDetailContent(
             a.cqZone?.let { DetailRow("CQ-Zone", it.toString()) }
             a.ituZone?.let { DetailRow("ITU-Zone", it.toString()) }
             a.germanClass?.let { DetailRow("Klasse (geschätzt)", it) }
+            a.currentLocation?.let { loc ->
+                DetailRow("Aktueller Standort", a.currentLocationCode?.let { "$loc ($it)" } ?: loc)
+            }
+            a.operatingMode?.let { DetailRow("Betriebsart", it) }
             if (a.notes.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 a.notes.forEach { note ->

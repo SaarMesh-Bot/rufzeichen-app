@@ -65,6 +65,8 @@ class CallsignRepository(
         if (query.isEmpty()) return SearchOutcome(emptyList(), emptySet(), false)
 
         val analysis = CallsignAnalyzer.analyze(query)
+        // Roaming / portable: query all sources with the home call (EJ/DC4AC/P -> DC4AC).
+        val lookupCall = CallsignAnalyzer.homeCall(query)
         val settings = settingsRepo.settings.first()
         val online = isOnline()
         val wildcard = query.contains('*')
@@ -77,7 +79,7 @@ class CallsignRepository(
             // 1) International backend first (single call signs only; the
             //    wildcard search is a BNetzA-specific feature handled on-device).
             if (settings.useBackend && !wildcard) {
-                val res = backend.lookup(settings.backendUrl, query)
+                val res = backend.lookup(settings.backendUrl, lookupCall)
                 when (res.status) {
                     "ok" -> {
                         res.callsign?.let { merge(merged, it); used += DataSourceType.BACKEND }
@@ -100,12 +102,12 @@ class CallsignRepository(
             //    the backend is disabled/unreachable). Existing behaviour.
             if (!handledByBackend) {
                 if (settings.useBnetza) {
-                    val list = bnetza.search(query)
+                    val list = bnetza.search(lookupCall)
                     if (list.isNotEmpty()) used += DataSourceType.BNETZA
                     list.forEach { merge(merged, it) }
                 }
                 if (settings.useHamQth) {
-                    val list = hamQth.search(query, settings.hamQthUser, settings.hamQthPass)
+                    val list = hamQth.search(lookupCall, settings.hamQthUser, settings.hamQthPass)
                     if (list.isNotEmpty()) used += DataSourceType.HAMQTH
                     list.forEach { merge(merged, it) }
                 }
@@ -118,7 +120,7 @@ class CallsignRepository(
 
         // Offline / fallback: search local cache.
         if (merged.isEmpty()) {
-            val pattern = query.replace('*', '_') + if (!query.endsWith("*")) "%" else ""
+            val pattern = lookupCall.replace('*', '_') + if (!lookupCall.endsWith("*")) "%" else ""
             dao.searchCache(pattern).forEach { merge(merged, it.toCallsign()) }
             if (merged.isNotEmpty()) used += DataSourceType.OFFLINE
         }
@@ -138,7 +140,9 @@ class CallsignRepository(
             )
         } else {
             merged.values.map { c ->
-                c.copy(analysis = CallsignAnalyzer.analyze(c.callsign))
+                val a = if (query.contains('/') && c.callsign.equals(lookupCall, ignoreCase = true))
+                    analysis else CallsignAnalyzer.analyze(c.callsign)
+                c.copy(analysis = a)
             }
         }
 

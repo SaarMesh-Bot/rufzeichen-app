@@ -51,5 +51,9 @@ data class CallsignAnalysis(
     val continent: String? = null,      // EU, AS, NA, SA, AF, OC, AN
     val cqZone: Int? = null,            // nominal CQ zone (null if it varies)
     val ituZone: Int? = null,           // nominal ITU zone (null if it varies)
+    // Roaming / portable enrichment (compound call signs like EJ/DC4AC/P):
+    val currentLocation: String? = null,     // guest country, e.g. "Irland"
+    val currentLocationCode: String? = null, // guest prefix token, e.g. "EJ"
+    val operatingMode: String? = null,       // e.g. "Portabel"
     val notes: List<String> = emptyList()
 )

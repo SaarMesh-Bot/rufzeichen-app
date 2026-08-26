@@ -50,7 +50,8 @@ object CallsignAnalyzer {
         PrefixRange("ON", "Belgien", "BE", "EU", 14, 27), PrefixRange("LX", "Luxemburg", "LU", "EU", 14, 27),
         PrefixRange("F", "Frankreich", "FR", "EU", 14, 27), PrefixRange("G", "Großbritannien", "GB", "EU", 14, 27),
         PrefixRange("M", "Großbritannien", "GB", "EU", 14, 27), PrefixRange("2E", "Großbritannien", "GB", "EU", 14, 27),
-        PrefixRange("EI", "Irland", "IE", "EU", 14, 27), PrefixRange("EA", "Spanien", "ES", "EU", 14, 37),
+        PrefixRange("EI", "Irland", "IE", "EU", 14, 27), PrefixRange("EJ", "Irland (Inseln)", "IE", "EU", 14, 27),
+        PrefixRange("LZ", "Bulgarien", "BG", "EU", 20, 28), PrefixRange("EA", "Spanien", "ES", "EU", 14, 37),
         PrefixRange("CT", "Portugal", "PT", "EU", 14, 37), PrefixRange("I", "Italien", "IT", "EU", 15, 28),
         PrefixRange("SP", "Polen", "PL", "EU", 15, 28), PrefixRange("OK", "Tschechien", "CZ", "EU", 15, 28),
         PrefixRange("OM", "Slowakei", "SK", "EU", 15, 28), PrefixRange("HA", "Ungarn", "HU", "EU", 15, 28),
@@ -122,7 +123,8 @@ object CallsignAnalyzer {
 
     fun analyze(rawInput: String): CallsignAnalysis {
         val normalized = rawInput.trim().uppercase().replace(Regex("[^A-Z0-9/*]"), "")
-        val base = baseCall(normalized)
+        val parts = parseCompound(normalized)
+        val base = parts.home
 
         val match = Regex("^([A-Z0-9]*?[A-Z])([0-9])([A-Z0-9]*)$").find(base)
         val prefix: String
@@ -141,9 +143,24 @@ object CallsignAnalyzer {
         val german = if (isGerman) germanInfo(prefix, number) else null
         val germanClass = german?.first
 
+        // Roaming / portable enrichment.
+        val guestRange = parts.guest?.takeIf { !parts.guestIsRegionDigit }?.let { lookupPrefix(it) }
+        val currentLocation = when {
+            parts.guest == null || parts.guestIsRegionDigit -> null
+            guestRange != null -> guestRange.country
+            else -> "Ausland"
+        }
+        val currentLocationCode = if (parts.guestIsRegionDigit) null else parts.guest
+        val operatingMode = modeLabel(parts.addons)
+
         val notes = buildList {
             if (normalized.contains('*')) add("Enthält Platzhalter '*' – geeignet für die BNetzA-Suche.")
-            if (normalized.contains('/')) add("Portabel-/Zusatzkennung erkannt: $normalized")
+            if (currentLocation != null) {
+                val loc = currentLocationCode?.let { "$currentLocation ($it)" } ?: currentLocation
+                add("Roaming: $base funkt zurzeit aus $loc.")
+            }
+            if (parts.guestIsRegionDigit) add("Abweichendes Rufzeichengebiet: ${parts.guest}")
+            operatingMode?.let { add("Betriebsart: $it") }
             german?.let { (_, purposeCode) ->
                 purposeLabel[purposeCode]?.let { add("Verwendungszweck: $it") }
             }
@@ -165,18 +182,66 @@ object CallsignAnalyzer {
             continent = range?.continent,
             cqZone = range?.cq,
             ituZone = range?.itu,
+            currentLocation = currentLocation,
+            currentLocationCode = currentLocationCode,
+            operatingMode = operatingMode,
             notes = notes
         )
     }
 
-    private fun baseCall(call: String): String {
-        if (!call.contains('/')) return call
-        val parts = call.split('/').filter { it.isNotEmpty() }
-        if (parts.isEmpty()) return call
-        val addons = setOf("P", "M", "MM", "AM", "QRP", "A", "R")
-        val candidates = parts.filter { it !in addons }.ifEmpty { parts }
-        for (p in candidates) if (lookupPrefix(p) != null) return p
-        return candidates.maxByOrNull { it.length } ?: call
+    // ---- compound (roaming / portable) parsing -------------------------------
+
+    private data class Compound(
+        val home: String,
+        val guest: String?,
+        val guestIsRegionDigit: Boolean,
+        val addons: List<String>
+    )
+
+    private val ADDONS = setOf("P", "M", "MM", "AM", "A", "QRP", "R", "LH")
+
+    private val modeLabels = mapOf(
+        "P" to "Portabel",
+        "M" to "Mobil",
+        "MM" to "Maritim mobil (See)",
+        "AM" to "Aeronautisch mobil (Luft)",
+        "QRP" to "Kleinleistung (QRP)",
+        "A" to "alternativer Standort",
+        "R" to "Rover",
+        "LH" to "Leuchtturm"
+    )
+
+    private fun modeLabel(addons: List<String>): String? =
+        addons.mapNotNull { modeLabels[it] }.joinToString(", ").ifEmpty { null }
+
+    /** A full call sign: letter, then digit, then at least one more letter, len >= 4.
+     *  Separates a real home call (DC4AC) from a bare prefix (EI, EJ, LZ, 3A, W4). */
+    private fun isFullCall(s: String): Boolean =
+        s.length >= 4 && Regex("[A-Z][0-9].*[A-Z]").containsMatchIn(s)
+
+    /** Split a compound call into home call / guest (location) prefix / add-ons. */
+    private fun parseCompound(call: String): Compound {
+        if (!call.contains('/')) return Compound(call, null, false, emptyList())
+        val segs = call.split('/').filter { it.isNotEmpty() }
+        if (segs.size < 2) return Compound(segs.firstOrNull() ?: call, null, false, emptyList())
+        val nonAddon = segs.filter { it !in ADDONS }
+        val pool = if (nonAddon.isEmpty()) segs else nonAddon
+        val home = pool.filter { isFullCall(it) }.maxByOrNull { it.length }
+            ?: pool.maxByOrNull { it.length } ?: call
+        val homeIdx = segs.indexOf(home)
+        val before = if (homeIdx > 0) segs.subList(0, homeIdx) else emptyList()
+        val after = if (homeIdx in 0 until segs.size - 1) segs.subList(homeIdx + 1, segs.size) else emptyList()
+        val addons = after.filter { it in ADDONS }
+        // Guest/location prefix: a leading segment, or a trailing non-add-on (US style).
+        val guest = before.firstOrNull() ?: after.firstOrNull { it !in ADDONS }
+        val regionDigit = guest != null && guest.all { it.isDigit() }
+        return Compound(home, guest, regionDigit, addons)
+    }
+
+    /** The home call sign used for the actual lookup (EJ/DC4AC/P -> DC4AC). */
+    fun homeCall(rawInput: String): String {
+        val norm = rawInput.trim().uppercase().replace(Regex("[^A-Z0-9/*]"), "")
+        return parseCompound(norm).home
     }
 
     private fun lookupPrefix(base: String): PrefixRange? =
