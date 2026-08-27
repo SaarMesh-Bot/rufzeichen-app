@@ -29,6 +29,9 @@ interface CallsignDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addHistory(entry: HistoryEntity)
 
+    @Query("DELETE FROM history WHERE query = :query")
+    suspend fun deleteHistoryByQuery(query: String)
+
     @Query("DELETE FROM history")
     suspend fun clearHistory()
 

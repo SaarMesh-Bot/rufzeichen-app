@@ -60,6 +60,8 @@ class CallsignRepository(
 
     suspend fun clearHistory() = dao.clearHistory()
 
+    suspend fun deleteHistoryEntry(query: String) = dao.deleteHistoryByQuery(query.trim().uppercase())
+
     suspend fun search(rawQuery: String): SearchOutcome {
         val query = rawQuery.trim().uppercase()
         if (query.isEmpty()) return SearchOutcome(emptyList(), emptySet(), false)

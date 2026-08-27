@@ -57,6 +57,8 @@ class SearchViewModel(
 
     fun clearHistory() = viewModelScope.launch { repository.clearHistory() }
 
+    fun deleteHistory(query: String) = viewModelScope.launch { repository.deleteHistoryEntry(query) }
+
     fun isFavorite(callsign: String) = repository.isFavorite(callsign)
 
     fun setFavorite(callsign: Callsign, favorite: Boolean) = viewModelScope.launch {

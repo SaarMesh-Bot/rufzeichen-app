@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -103,7 +104,8 @@ fun SearchScreen(
                     HistoryList(
                         history = history.map { it.query },
                         onClick = { viewModel.search(it) },
-                        onClear = viewModel::clearHistory
+                        onClear = viewModel::clearHistory,
+                        onDelete = viewModel::deleteHistory
                     )
                 }
             }
@@ -157,7 +159,8 @@ fun SearchScreen(
                             keyboard?.hide()
                             viewModel.search(it)
                         },
-                        onClear = viewModel::clearHistory
+                        onClear = viewModel::clearHistory,
+                        onDelete = viewModel::deleteHistory
                     )
                 }
             }
@@ -213,7 +216,8 @@ fun CallsignCard(callsign: Callsign, onClick: () -> Unit) {
 private fun HistoryList(
     history: List<String>,
     onClick: (String) -> Unit,
-    onClear: () -> Unit
+    onClear: () -> Unit,
+    onDelete: (String) -> Unit
 ) {
     Column(Modifier.fillMaxWidth()) {
         Row(
@@ -223,19 +227,28 @@ private fun HistoryList(
             Text("Verlauf", style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f))
-            TextButton(onClick = onClear) { Text("Löschen") }
+            TextButton(onClick = onClear) { Text("Alle löschen") }
         }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             items(history.distinct()) { q ->
-                Text(
-                    text = q,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontFamily = FontFamily.Monospace,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onClick(q) }
-                        .padding(vertical = 10.dp)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = q,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onClick(q) }
+                            .padding(vertical = 10.dp)
+                    )
+                    IconButton(onClick = { onDelete(q) }) {
+                        Icon(
+                            Icons.Filled.Delete,
+                            contentDescription = "„$q“ aus dem Verlauf löschen",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }

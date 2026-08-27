@@ -1,5 +1,10 @@
 package de.hamlookup.rufzeichen.ui.favorites
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import androidx.compose.foundation.clickable
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -35,6 +41,14 @@ import de.hamlookup.rufzeichen.ui.SettingsViewModel
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val versionLabel = remember {
+        runCatching {
+            val pi = context.packageManager.getPackageInfo(context.packageName, 0)
+            val code = if (Build.VERSION.SDK_INT >= 28) pi.longVersionCode else pi.versionCode.toLong()
+            "${pi.versionName} ($code)"
+        }.getOrDefault("")
+    }
 
     Column(
         Modifier
@@ -141,6 +155,48 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 "serverseitig aus der Anschrift über OpenStreetMap/Nominatim ermittelt.",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        HorizontalDivider(Modifier.padding(vertical = 12.dp))
+        Text("Über", style = MaterialTheme.typography.headlineSmall)
+        Spacer(Modifier.height(8.dp))
+        if (versionLabel.isNotBlank()) {
+            Text(
+                "Version $versionLabel",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+        Text(
+            "Entwickelt von Mathias Kasper",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(
+            "Kontakt & Feedback: app@saarmesh.de",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.clickable {
+                val subject = "Rufzeichen $versionLabel – Feedback"
+                val intent = Intent(
+                    Intent.ACTION_SENDTO,
+                    Uri.parse("mailto:app@saarmesh.de?subject=" + Uri.encode(subject))
+                )
+                runCatching { context.startActivity(intent) }
+            }
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            "Datenschutzerklärung",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.clickable {
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://saarmesh-bot.github.io/rufzeichen-app/datenschutz.html")
+                )
+                runCatching { context.startActivity(intent) }
+            }
         )
     }
 }
