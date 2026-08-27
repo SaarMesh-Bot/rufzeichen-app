@@ -37,6 +37,7 @@ fun CallsignDetailContent(
     callsign: Callsign,
     isFavorite: Boolean,
     ownLocator: String? = null,
+    ownCallsign: String? = null,
     onToggleFavorite: (Boolean) -> Unit
 ) {
     Column(
@@ -76,6 +77,22 @@ fun CallsignDetailContent(
 
         Spacer(Modifier.height(12.dp))
 
+        // Relation to the user's own QTH (shared by the map line and the
+        // distance section). "Own station" if the call matches the stored own
+        // call sign, or the computed distance is under ~2 km.
+        val stationPoint: Pair<Double, Double>? = when {
+            callsign.latitude != null && callsign.longitude != null ->
+                callsign.latitude to callsign.longitude
+            else -> maidenheadToCenter(callsign.locator)
+        }
+        val ownPoint = maidenheadToCenter(ownLocator)
+        val selfByCallsign = !ownCallsign.isNullOrBlank() &&
+            callsign.callsign.equals(ownCallsign, ignoreCase = true)
+        val distanceKm = if (stationPoint != null && ownPoint != null)
+            greatCircleKm(ownPoint.first, ownPoint.second, stationPoint.first, stationPoint.second)
+        else null
+        val isOwnStation = selfByCallsign || (distanceKm != null && distanceKm < 2.0)
+
         // Data from the sources
         val hasSourceData = callsign.holderName != null || callsign.licenceClass != null ||
             callsign.qth != null || callsign.licenseStatus != null ||
@@ -101,22 +118,17 @@ fun CallsignDetailContent(
 
             // Interactive OpenStreetMap view of the location, from explicit
             // backend coordinates or (fallback) the centre of the locator grid.
-            val mapPoint: Pair<Double, Double>? = when {
-                callsign.latitude != null && callsign.longitude != null ->
-                    callsign.latitude to callsign.longitude
-                else -> maidenheadToCenter(callsign.locator)
-            }
-            if (mapPoint != null) {
+            if (stationPoint != null) {
                 Spacer(Modifier.height(12.dp))
                 SectionTitle("Standort (Karte)")
                 Spacer(Modifier.height(8.dp))
-                val ownMapPoint = maidenheadToCenter(ownLocator)
+                val showLine = ownPoint != null && !isOwnStation
                 LocationMap(
-                    lat = mapPoint.first,
-                    lon = mapPoint.second,
+                    lat = stationPoint.first,
+                    lon = stationPoint.second,
                     label = callsign.holderName ?: callsign.callsign,
-                    fromLat = ownMapPoint?.first,
-                    fromLon = ownMapPoint?.second,
+                    fromLat = if (showLine) ownPoint?.first else null,
+                    fromLon = if (showLine) ownPoint?.second else null,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(240.dp)
@@ -126,7 +138,7 @@ fun CallsignDetailContent(
                 Text(
                     "Karte: © OpenStreetMap-Mitwirkende (ODbL). Position gemäß " +
                         (if (callsign.latitude != null) "ermittelter Anschrift." else "QTH-Locator (ungefähr).") +
-                        (if (ownMapPoint != null) " Blaue Linie: Großkreis von deinem Standort." else ""),
+                        (if (showLine) " Blaue Linie: Großkreis von deinem Standort." else ""),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -136,15 +148,16 @@ fun CallsignDetailContent(
         }
 
         // Distance & bearing from the user's own QTH to this station.
-        val stationPoint: Pair<Double, Double>? = when {
-            callsign.latitude != null && callsign.longitude != null ->
-                callsign.latitude to callsign.longitude
-            else -> maidenheadToCenter(callsign.locator)
-        }
-        val ownPoint = maidenheadToCenter(ownLocator)
-        if (stationPoint != null && ownPoint != null) {
-            val km = greatCircleKm(ownPoint.first, ownPoint.second,
-                stationPoint.first, stationPoint.second)
+        if (isOwnStation) {
+            SectionTitle("Standort")
+            Text(
+                "Das ist dein eigener Standort.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            HorizontalDivider(Modifier.padding(vertical = 12.dp))
+        } else if (stationPoint != null && ownPoint != null) {
+            val km = distanceKm ?: 0.0
             val shortBrg = initialBearing(ownPoint.first, ownPoint.second,
                 stationPoint.first, stationPoint.second).roundToInt() % 360
             val longBrg = (shortBrg + 180) % 360
