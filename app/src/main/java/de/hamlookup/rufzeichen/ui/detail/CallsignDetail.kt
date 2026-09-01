@@ -1,5 +1,13 @@
 package de.hamlookup.rufzeichen.ui.detail
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -12,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -21,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -31,7 +41,7 @@ import de.hamlookup.rufzeichen.ui.common.ProvenanceBadge
 import de.hamlookup.rufzeichen.ui.common.SectionTitle
 import de.hamlookup.rufzeichen.ui.common.SourceChip
 
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun CallsignDetailContent(
     callsign: Callsign,
@@ -40,6 +50,7 @@ fun CallsignDetailContent(
     ownCallsign: String? = null,
     onToggleFavorite: (Boolean) -> Unit
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -52,8 +63,20 @@ fun CallsignDetailContent(
                 text = callsign.callsign,
                 style = MaterialTheme.typography.titleLarge,
                 fontFamily = FontFamily.Monospace,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = { copyToClipboard(context, "Rufzeichen", callsign.callsign) }
+                    )
             )
+            IconButton(onClick = { shareCallsign(context, callsign) }) {
+                Icon(
+                    imageVector = Icons.Filled.Share,
+                    contentDescription = "Teilen",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             IconButton(onClick = { onToggleFavorite(!isFavorite) }) {
                 Icon(
                     imageVector = Icons.Filled.Star,
@@ -109,7 +132,12 @@ fun CallsignDetailContent(
                 else -> callsign.country
             }
             land?.let { DetailRow("Land", it) }
-            callsign.locator?.let { DetailRow("Locator", it) }
+            callsign.locator?.let { loc ->
+                Box(Modifier.combinedClickable(
+                    onClick = {},
+                    onLongClick = { copyToClipboard(context, "Locator", loc) }
+                )) { DetailRow("Locator", loc) }
+            }
             // Any additional key/value pairs not already shown.
             val shown = setOf("Name", "Inhaber", "Klasse", "Ort", "QTH", "Standort", "Land")
             callsign.extra.forEach { (k, v) ->
@@ -141,6 +169,19 @@ fun CallsignDetailContent(
                         (if (showLine) " Blaue Linie: Großkreis von deinem Standort." else ""),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "In Karte öffnen",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.combinedClickable(
+                        onClick = {
+                            openInMaps(context, stationPoint.first, stationPoint.second,
+                                callsign.holderName ?: callsign.callsign)
+                        },
+                        onLongClick = {}
+                    )
                 )
             }
 
@@ -216,4 +257,43 @@ private fun continentName(code: String): String = when (code.uppercase()) {
     "OC" -> "Ozeanien (OC)"
     "AN" -> "Antarktis (AN)"
     else -> code
+}
+
+private fun copyToClipboard(context: Context, label: String, text: String) {
+    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
+    cm.setPrimaryClip(ClipData.newPlainText(label, text))
+    Toast.makeText(context, "$label kopiert", Toast.LENGTH_SHORT).show()
+}
+
+private fun shareCallsign(context: Context, c: Callsign) {
+    val lines = buildList {
+        val holder = c.holderName
+        add(if (holder != null) "${c.callsign} – $holder" else c.callsign)
+        c.licenceClass?.let { add("Klasse: $it") }
+        val land = when {
+            c.country != null && c.countryCode != null -> "${c.country} (${c.countryCode})"
+            else -> c.country
+        }
+        land?.let { add("Land: $it") }
+        c.qth?.let { add("Standort: $it") }
+        c.locator?.let { add("Locator: $it") }
+        c.analysis?.let { a ->
+            a.currentLocation?.let { cur ->
+                add("Aktuell in: " + (a.currentLocationCode?.let { "$cur ($it)" } ?: cur))
+            }
+            a.operatingMode?.let { add("Betriebsart: $it") }
+        }
+        c.sourceName?.let { src ->
+            add("Quelle: $src" + if (c.official == true) " (offiziell)" else "")
+        }
+        add("")
+        add("via Rufzeichen – Amateurfunk")
+    }
+    val text = lines.joinToString("\n")
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, "Rufzeichen ${c.callsign}")
+        putExtra(Intent.EXTRA_TEXT, text)
+    }
+    runCatching { context.startActivity(Intent.createChooser(intent, "Teilen")) }
 }

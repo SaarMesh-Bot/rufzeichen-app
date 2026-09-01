@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -55,6 +56,7 @@ fun SearchScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val history by viewModel.history.collectAsStateWithLifecycle()
+    val favoriteCalls by viewModel.favoriteCalls.collectAsStateWithLifecycle()
     val keyboard = LocalSoftwareKeyboardController.current
     var showHistory by remember { mutableStateOf(false) }
 
@@ -98,10 +100,23 @@ fun SearchScreen(
             state.error != null -> EmptyState("Fehler: ${state.error}")
 
             state.outcome == null -> {
-                if (history.isEmpty()) {
-                    EmptyState("Gib ein Rufzeichen ein. '*' ist als Platzhalter für ein Zeichen erlaubt.")
-                } else {
-                    HistoryList(
+                val q = state.query.trim().uppercase()
+                val suggestions = if (q.isNotEmpty()) {
+                    (history.map { it.query } + favoriteCalls)
+                        .map { it.uppercase() }
+                        .distinct()
+                        .filter { it.startsWith(q) && it != q }
+                        .take(8)
+                } else emptyList()
+                when {
+                    suggestions.isNotEmpty() -> SuggestionList(suggestions) {
+                        keyboard?.hide()
+                        viewModel.search(it)
+                    }
+                    history.isEmpty() -> EmptyState(
+                        "Gib ein Rufzeichen ein. '*' ist als Platzhalter für ein Zeichen erlaubt."
+                    )
+                    else -> HistoryList(
                         history = history.map { it.query },
                         onClick = { viewModel.search(it) },
                         onClear = viewModel::clearHistory,
@@ -207,6 +222,37 @@ fun CallsignCard(callsign: Callsign, onClick: () -> Unit) {
             secondLine?.let {
                 Text(it, style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SuggestionList(items: List<String>, onClick: (String) -> Unit) {
+    Column(Modifier.fillMaxWidth()) {
+        Text(
+            "Vorschläge",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(vertical = 6.dp)
+        )
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            items(items) { s ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onClick(s) }
+                        .padding(vertical = 10.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(s, style = MaterialTheme.typography.bodyLarge, fontFamily = FontFamily.Monospace)
+                }
             }
         }
     }

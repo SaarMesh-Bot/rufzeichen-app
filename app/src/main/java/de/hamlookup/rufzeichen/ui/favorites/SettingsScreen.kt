@@ -13,14 +13,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,7 +33,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -37,6 +43,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.hamlookup.rufzeichen.ui.SettingsViewModel
+import de.hamlookup.rufzeichen.ui.detail.LocatorPickerMap
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
@@ -49,6 +56,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             "${pi.versionName} ($code)"
         }.getOrDefault("")
     }
+    var showPicker by remember { mutableStateOf(false) }
 
     Column(
         Modifier
@@ -81,6 +89,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             capitalize = true,
             transform = { it.uppercase().replace(" ", "") }
         )
+        TextButton(onClick = { showPicker = true }) { Text("Standort auf Karte wählen") }
         HorizontalDivider(Modifier.padding(vertical = 12.dp))
 
         Text("Datenquellen", style = MaterialTheme.typography.headlineSmall)
@@ -198,6 +207,47 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 runCatching { context.startActivity(intent) }
             }
         )
+    }
+
+    if (showPicker) {
+        var picked by remember { mutableStateOf(settings.ownLocator) }
+        Dialog(onDismissRequest = { showPicker = false }) {
+            Surface(shape = RoundedCornerShape(16.dp), tonalElevation = 6.dp) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Standort auf der Karte wählen", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "Tippe auf deine Position. Gewählt: " + picked.ifBlank { "—" },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    LocatorPickerMap(
+                        initialLocator = settings.ownLocator.ifBlank { null },
+                        onPicked = { picked = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(360.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        TextButton(onClick = { showPicker = false }) { Text("Abbrechen") }
+                        Spacer(Modifier.width(8.dp))
+                        TextButton(
+                            onClick = {
+                                viewModel.update(settings.copy(ownLocator = picked))
+                                showPicker = false
+                            },
+                            enabled = picked.isNotBlank()
+                        ) { Text("Übernehmen") }
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -179,3 +179,96 @@ fun greatCircleGeoPoints(
     }
     return out
 }
+
+// --------------------------------------------------------------------------
+// Coordinates -> Maidenhead (6 chars) and "open in external map" helper.
+// --------------------------------------------------------------------------
+
+/** Convert coordinates to a 6-character Maidenhead locator. */
+fun latLonToMaidenhead(lat: Double, lon: Double): String {
+    val lonS = (lon + 180.0).coerceIn(0.0, 359.9999)
+    val latS = (lat + 90.0).coerceIn(0.0, 179.9999)
+    val sb = StringBuilder()
+    sb.append('A' + (lonS / 20).toInt())
+    sb.append('A' + (latS / 10).toInt())
+    sb.append(((lonS % 20) / 2).toInt())
+    sb.append((latS % 10).toInt())
+    sb.append('A' + ((lonS % 2) / (2.0 / 24.0)).toInt())
+    sb.append('A' + ((latS % 1.0) / (1.0 / 24.0)).toInt())
+    return sb.toString()
+}
+
+/** Open a position in the device's map/navigation app, falling back to OSM web. */
+fun openInMaps(context: android.content.Context, lat: Double, lon: Double, label: String?) {
+    val q = if (label.isNullOrBlank()) "$lat,$lon" else "$lat,$lon(" +
+        android.net.Uri.encode(label) + ")"
+    val geo = android.content.Intent(
+        android.content.Intent.ACTION_VIEW,
+        android.net.Uri.parse("geo:$lat,$lon?q=$q")
+    )
+    val ok = runCatching { context.startActivity(geo) }.isSuccess
+    if (!ok) {
+        val web = android.content.Intent(
+            android.content.Intent.ACTION_VIEW,
+            android.net.Uri.parse("https://www.openstreetmap.org/?mlat=$lat&mlon=$lon#map=14/$lat/$lon")
+        )
+        runCatching { context.startActivity(web) }
+    }
+}
+
+/**
+ * Interactive OSM map for picking a QTH: tapping the map computes the 6-char
+ * Maidenhead locator of the tapped point and reports it via [onPicked].
+ */
+@Composable
+fun LocatorPickerMap(
+    initialLocator: String?,
+    onPicked: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val start = maidenheadToCenter(initialLocator)
+    val mapView = remember {
+        MapView(context).apply {
+            setTileSource(TileSourceFactory.MAPNIK)
+            setMultiTouchControls(true)
+            setUseDataConnection(true)
+            overlays.add(CopyrightOverlay(context))
+            controller.setZoom(if (start != null) 9.0 else 5.0)
+            controller.setCenter(GeoPoint(start?.first ?: 51.0, start?.second ?: 10.0))
+        }
+    }
+
+    DisposableEffect(Unit) {
+        val receiver = object : org.osmdroid.events.MapEventsReceiver {
+            override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
+                mapView.overlays.removeAll { it is Marker }
+                val m = Marker(mapView).apply {
+                    position = p
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                }
+                mapView.overlays.add(m)
+                mapView.invalidate()
+                onPicked(latLonToMaidenhead(p.latitude, p.longitude))
+                return true
+            }
+            override fun longPressHelper(p: GeoPoint): Boolean = false
+        }
+        val events = org.osmdroid.views.overlay.MapEventsOverlay(receiver)
+        mapView.overlays.add(0, events)
+        // initial marker at the current locator, if any
+        if (start != null) {
+            mapView.overlays.add(Marker(mapView).apply {
+                position = GeoPoint(start.first, start.second)
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+            })
+        }
+        mapView.onResume()
+        onDispose {
+            mapView.onPause()
+            mapView.onDetach()
+        }
+    }
+
+    AndroidView(modifier = modifier, factory = { mapView })
+}
