@@ -57,6 +57,16 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         }.getOrDefault("")
     }
     var showPicker by remember { mutableStateOf(false) }
+    var callText by remember { mutableStateOf(settings.ownCallsign) }
+    var callFocused by remember { mutableStateOf(false) }
+    var locText by remember { mutableStateOf(settings.ownLocator) }
+    var locFocused by remember { mutableStateOf(false) }
+    LaunchedEffect(settings.ownCallsign, callFocused) {
+        if (!callFocused && callText != settings.ownCallsign) callText = settings.ownCallsign
+    }
+    LaunchedEffect(settings.ownLocator, locFocused) {
+        if (!locFocused && locText != settings.ownLocator) locText = settings.ownLocator
+    }
 
     Column(
         Modifier
@@ -73,21 +83,31 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(8.dp))
-        PersistedTextField(
-            value = settings.ownCallsign,
-            onCommit = { viewModel.update(settings.copy(ownCallsign = it)) },
-            label = "Eigenes Rufzeichen (optional)",
-            capitalize = true,
-            transform = { it.uppercase() }
+        OutlinedTextField(
+            value = callText,
+            onValueChange = {
+                val t = it.uppercase()
+                callText = t
+                viewModel.update(settings.copy(ownCallsign = t))
+            },
+            label = { Text("Eigenes Rufzeichen (optional)") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+            modifier = Modifier.fillMaxWidth().onFocusChanged { callFocused = it.isFocused }
         )
         Spacer(Modifier.height(8.dp))
-        PersistedTextField(
-            value = settings.ownLocator,
-            onCommit = { viewModel.update(settings.copy(ownLocator = it)) },
-            label = "Eigener Locator (Maidenhead)",
-            placeholder = "z. B. JN39KF",
-            capitalize = true,
-            transform = { it.uppercase().replace(" ", "") }
+        OutlinedTextField(
+            value = locText,
+            onValueChange = {
+                val t = it.uppercase().replace(" ", "")
+                locText = t
+                viewModel.update(settings.copy(ownLocator = t))
+            },
+            label = { Text("Eigener Locator (Maidenhead)") },
+            placeholder = { Text("z. B. JN39KF") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+            modifier = Modifier.fillMaxWidth().onFocusChanged { locFocused = it.isFocused }
         )
         TextButton(onClick = { showPicker = true }) { Text("Standort auf Karte wählen") }
         HorizontalDivider(Modifier.padding(vertical = 12.dp))
@@ -210,7 +230,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     }
 
     if (showPicker) {
-        var picked by remember { mutableStateOf(settings.ownLocator) }
+        var picked by remember { mutableStateOf(locText) }
         Dialog(onDismissRequest = { showPicker = false }) {
             Surface(shape = RoundedCornerShape(16.dp), tonalElevation = 6.dp) {
                 Column(Modifier.padding(16.dp)) {
@@ -223,7 +243,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     )
                     Spacer(Modifier.height(8.dp))
                     LocatorPickerMap(
-                        initialLocator = settings.ownLocator.ifBlank { null },
+                        initialLocator = locText.ifBlank { null },
                         onPicked = { picked = it },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -239,6 +259,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         Spacer(Modifier.width(8.dp))
                         TextButton(
                             onClick = {
+                                locText = picked
                                 viewModel.update(settings.copy(ownLocator = picked))
                                 showPicker = false
                             },
