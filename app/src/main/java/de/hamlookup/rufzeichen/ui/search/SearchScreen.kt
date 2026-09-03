@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -36,6 +38,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
@@ -56,9 +60,10 @@ fun SearchScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val history by viewModel.history.collectAsStateWithLifecycle()
-    val favoriteCalls by viewModel.favoriteCalls.collectAsStateWithLifecycle()
     val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     var showHistory by remember { mutableStateOf(false) }
+    var searchFocused by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         OutlinedTextField(
@@ -68,14 +73,25 @@ fun SearchScreen(
             placeholder = { Text("z. B. DL1ABC, W1AW oder db2*k") },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             trailingIcon = {
-                if (history.isNotEmpty()) {
-                    IconButton(onClick = { showHistory = true }) {
-                        Icon(Icons.Filled.DateRange, contentDescription = "Suchverlauf")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (state.query.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.onQueryChange("") }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Eingabe löschen")
+                        }
+                    }
+                    if (history.isNotEmpty()) {
+                        IconButton(onClick = {
+                            keyboard?.hide()
+                            focusManager.clearFocus()
+                            showHistory = true
+                        }) {
+                            Icon(Icons.Filled.DateRange, contentDescription = "Suchverlauf")
+                        }
                     }
                 }
             },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().onFocusChanged { searchFocused = it.isFocused },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = {
                 keyboard?.hide()
@@ -83,6 +99,27 @@ fun SearchScreen(
             })
         )
         Spacer(Modifier.height(12.dp))
+
+        // Verlauf-Dropdown direkt unter dem Feld: erscheint beim Fokus und
+        // filtert live mit der Eingabe (aus dem Suchverlauf).
+        val q = state.query.trim().uppercase()
+        val dropItems = history.map { it.query.uppercase() }.distinct()
+            .let { all -> if (q.isEmpty()) all else all.filter { it.startsWith(q) && it != q } }
+            .take(8)
+        val dropdownVisible = searchFocused && state.outcome == null &&
+            !state.loading && dropItems.isNotEmpty()
+        if (dropdownVisible) {
+            HistoryDropdown(
+                items = dropItems,
+                onClick = {
+                    keyboard?.hide()
+                    focusManager.clearFocus()
+                    viewModel.search(it)
+                },
+                onDelete = viewModel::deleteHistory
+            )
+            Spacer(Modifier.height(12.dp))
+        }
 
         when {
             state.loading -> {
@@ -100,27 +137,10 @@ fun SearchScreen(
             state.error != null -> EmptyState("Fehler: ${state.error}")
 
             state.outcome == null -> {
-                val q = state.query.trim().uppercase()
-                val suggestions = if (q.isNotEmpty()) {
-                    (history.map { it.query } + favoriteCalls)
-                        .map { it.uppercase() }
-                        .distinct()
-                        .filter { it.startsWith(q) && it != q }
-                        .take(8)
-                } else emptyList()
-                when {
-                    suggestions.isNotEmpty() -> SuggestionList(suggestions) {
-                        keyboard?.hide()
-                        viewModel.search(it)
-                    }
-                    history.isEmpty() -> EmptyState(
-                        "Gib ein Rufzeichen ein. '*' ist als Platzhalter für ein Zeichen erlaubt."
-                    )
-                    else -> HistoryList(
-                        history = history.map { it.query },
-                        onClick = { viewModel.search(it) },
-                        onClear = viewModel::clearHistory,
-                        onDelete = viewModel::deleteHistory
+                if (!dropdownVisible) {
+                    EmptyState(
+                        "Gib ein Rufzeichen ein. '*' ist als Platzhalter für ein Zeichen erlaubt. " +
+                            "Beim Tippen erscheint dein Verlauf; das Verlauf-Symbol zeigt die ganze Liste."
                     )
                 }
             }
@@ -228,30 +248,46 @@ fun CallsignCard(callsign: Callsign, onClick: () -> Unit) {
 }
 
 @Composable
-private fun SuggestionList(items: List<String>, onClick: (String) -> Unit) {
-    Column(Modifier.fillMaxWidth()) {
-        Text(
-            "Vorschläge",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(vertical = 6.dp)
-        )
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            items(items) { s ->
+private fun HistoryDropdown(
+    items: List<String>,
+    onClick: (String) -> Unit,
+    onDelete: (String) -> Unit
+) {
+    Surface(
+        tonalElevation = 3.dp,
+        shadowElevation = 4.dp,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        LazyColumn(modifier = Modifier.heightIn(max = 260.dp)) {
+            items(items) { q ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onClick(s) }
-                        .padding(vertical = 10.dp)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
-                        Icons.Filled.Search,
+                        Icons.Filled.DateRange,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 14.dp)
                     )
-                    Spacer(Modifier.width(12.dp))
-                    Text(s, style = MaterialTheme.typography.bodyLarge, fontFamily = FontFamily.Monospace)
+                    Text(
+                        text = q,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onClick(q) }
+                            .padding(horizontal = 12.dp, vertical = 14.dp)
+                    )
+                    IconButton(onClick = { onDelete(q) }) {
+                        Icon(
+                            Icons.Filled.Delete,
+                            contentDescription = "„$q“ aus dem Verlauf löschen",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
