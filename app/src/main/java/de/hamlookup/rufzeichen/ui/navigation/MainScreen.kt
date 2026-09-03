@@ -89,6 +89,8 @@ fun MainScreen(factory: AppViewModelFactory) {
                 isFavorite = isFav,
                 ownLocator = settings.ownLocator.ifBlank { null },
                 ownCallsign = settings.ownCallsign.ifBlank { null },
+                ownLat = settings.ownLat,
+                ownLon = settings.ownLon,
                 onToggleFavorite = { makeFav -> searchVm.setFavorite(selected, makeFav) }
             )
         }

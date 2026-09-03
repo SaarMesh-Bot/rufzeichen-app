@@ -223,11 +223,14 @@ fun openInMaps(context: android.content.Context, lat: Double, lon: Double, label
 @Composable
 fun LocatorPickerMap(
     initialLocator: String?,
-    onPicked: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onPicked: (locator: String, lat: Double, lon: Double) -> Unit,
+    modifier: Modifier = Modifier,
+    initialLat: Double? = null,
+    initialLon: Double? = null
 ) {
     val context = LocalContext.current
-    val start = maidenheadToCenter(initialLocator)
+    val start = if (initialLat != null && initialLon != null) initialLat to initialLon
+        else maidenheadToCenter(initialLocator)
     val mapView = remember {
         MapView(context).apply {
             setTileSource(TileSourceFactory.MAPNIK)
@@ -249,7 +252,7 @@ fun LocatorPickerMap(
                 }
                 mapView.overlays.add(m)
                 mapView.invalidate()
-                onPicked(latLonToMaidenhead(p.latitude, p.longitude))
+                onPicked(latLonToMaidenhead(p.latitude, p.longitude), p.latitude, p.longitude)
                 return true
             }
             override fun longPressHelper(p: GeoPoint): Boolean = false

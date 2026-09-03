@@ -101,7 +101,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             onValueChange = {
                 val t = it.uppercase().replace(" ", "")
                 locText = t
-                viewModel.update(settings.copy(ownLocator = t))
+                viewModel.update(settings.copy(ownLocator = t, ownLat = null, ownLon = null))
             },
             label = { Text("Eigener Locator (Maidenhead)") },
             placeholder = { Text("z. B. JN39KF") },
@@ -231,6 +231,8 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 
     if (showPicker) {
         var picked by remember { mutableStateOf(locText) }
+        var pickedLat by remember { mutableStateOf(settings.ownLat) }
+        var pickedLon by remember { mutableStateOf(settings.ownLon) }
         Dialog(onDismissRequest = { showPicker = false }) {
             Surface(shape = RoundedCornerShape(16.dp), tonalElevation = 6.dp) {
                 Column(Modifier.padding(16.dp)) {
@@ -244,7 +246,9 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     Spacer(Modifier.height(8.dp))
                     LocatorPickerMap(
                         initialLocator = locText.ifBlank { null },
-                        onPicked = { picked = it },
+                        onPicked = { loc, la, lo -> picked = loc; pickedLat = la; pickedLon = lo },
+                        initialLat = settings.ownLat,
+                        initialLon = settings.ownLon,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(360.dp)
@@ -260,7 +264,8 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         TextButton(
                             onClick = {
                                 locText = picked
-                                viewModel.update(settings.copy(ownLocator = picked))
+                                viewModel.update(settings.copy(
+                                    ownLocator = picked, ownLat = pickedLat, ownLon = pickedLon))
                                 showPicker = false
                             },
                             enabled = picked.isNotBlank()

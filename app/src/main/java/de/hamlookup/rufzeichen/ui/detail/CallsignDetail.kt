@@ -48,6 +48,8 @@ fun CallsignDetailContent(
     isFavorite: Boolean,
     ownLocator: String? = null,
     ownCallsign: String? = null,
+    ownLat: Double? = null,
+    ownLon: Double? = null,
     onToggleFavorite: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
@@ -108,7 +110,8 @@ fun CallsignDetailContent(
                 callsign.latitude to callsign.longitude
             else -> maidenheadToCenter(callsign.locator)
         }
-        val ownPoint = maidenheadToCenter(ownLocator)
+        val ownPoint = if (ownLat != null && ownLon != null) ownLat to ownLon
+            else maidenheadToCenter(ownLocator)
         val selfByCallsign = !ownCallsign.isNullOrBlank() &&
             callsign.callsign.equals(ownCallsign, ignoreCase = true)
         val distanceKm = if (stationPoint != null && ownPoint != null)
