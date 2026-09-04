@@ -13,7 +13,7 @@
 </head>
 <body>
 <h1>Datenschutzerklärung</h1>
-<p class="muted">App „Rufzeichen – Amateurfunk-Rufzeichensuche" · Stand: August 2026</p>
+<p class="muted">App „Rufzeichen – Amateurfunk-Rufzeichensuche" · Stand: September 2026</p>
 
 <h2>1. Verantwortlicher</h2>
 <p>
@@ -28,18 +28,19 @@ E-Mail: <a href="mailto:Mail@mathiaskasper.de">Mail@mathiaskasper.de</a>
 
 <h2>3. Verarbeitete Daten und Zwecke</h2>
 <h3>a) Suchanfragen</h3>
-<p>Wenn du ein Rufzeichen suchst, wird der eingegebene Suchbegriff an die jeweils aktivierte Datenquelle gesendet:</p>
+<p>Wenn du ein Rufzeichen suchst, wird der eingegebene Suchbegriff je nach aktivierter Datenquelle übermittelt:</p>
 <ul>
-  <li><strong>Bundesnetzagentur (BNetzA):</strong> öffentliche Rufzeichen-Suchmaske unter <code>ans.bundesnetzagentur.de</code>. Übertragen wird nur der Suchbegriff. Es gelten die Datenschutzhinweise der BNetzA.</li>
+  <li><strong>Internationale Suche (Server):</strong> Standardmäßig wird der Suchbegriff an den vom Verantwortlichen betriebenen Server <code>live.saarmesh.de</code> gesendet. Dieser erkennt das Land am Präfix und beantwortet die Anfrage aus dem jeweiligen amtlichen Register: Deutschland (BNetzA), USA (FCC/Callook), Kanada (ISED), Finnland (Traficom), Ungarn (NMHH), Tschechien (ČTÚ), Norwegen (Nkom), Litauen (RRT), Rumänien (ANCOM) und Polen (UKE). Für die meisten Länder wird der amtliche Gesamtdatensatz in regelmäßigen Abständen vom jeweiligen Amt bezogen und auf dem Server vorgehalten; die Suche läuft dann dort. Es wird kein Nutzerkonto angelegt, es werden keine Nutzungsprofile gebildet und keine Analyse- oder Werbedienste eingesetzt. Zur Beschleunigung kann der Server gefundene Rufzeichen-Datensätze technisch zwischenspeichern; ein Bezug zu deiner Person oder deinem Gerät wird dabei nicht hergestellt. Die Serversuche lässt sich in den Einstellungen abschalten.</li>
+  <li><strong>Bundesnetzagentur (BNetzA), Onlineabfrage vom Gerät:</strong> öffentliche Rufzeichen-Suchmaske unter <code>ans.bundesnetzagentur.de</code>, direkt vom Gerät (auch als Fallback ohne Server). Übertragen wird nur der Suchbegriff. Es gelten die Datenschutzhinweise der BNetzA.</li>
   <li><strong>HamQTH (optional):</strong> nur wenn von dir aktiviert und mit deinen HamQTH-Zugangsdaten. Übertragen werden Suchbegriff und Zugangsdaten an <code>hamqth.com</code>. Die Zugangsdaten werden ausschließlich lokal auf deinem Gerät gespeichert.</li>
 </ul>
 <h3>b) Anzeige von Halterdaten</h3>
-<p>Die App zeigt zu einem Rufzeichen die von der Bundesnetzagentur <strong>öffentlich veröffentlichten</strong> Angaben an (u. a. Name des Inhabers, Betriebsort, Rufzeichenklasse). Diese Daten stammen aus der amtlichen, allgemein zugänglichen Rufzeichenliste der BNetzA. Rechtsgrundlage für die Verarbeitung ist das berechtigte Interesse an der Nutzbarkeit öffentlich zugänglicher Amateurfunkdaten (Art. 6 Abs. 1 lit. f DSGVO).</p>
+<p>Die App zeigt zu einem Rufzeichen die von der jeweils zuständigen Behörde <strong>öffentlich veröffentlichten</strong> Angaben an (je nach Land u. a. Name des Inhabers bzw. der Klubstation, Betriebsort, Lizenzklasse, Gültigkeit). Diese Daten stammen aus den amtlichen, allgemein zugänglichen Rufzeichenregistern der genannten Stellen (BNetzA, FCC, ISED, Traficom, NMHH, ČTÚ, Nkom, RRT, ANCOM, UKE). Einige Länder veröffentlichen bewusst keine Halterdaten, sondern nur Rufzeichen, Klasse und Gültigkeit. Rechtsgrundlage für die Verarbeitung ist das berechtigte Interesse an der Nutzbarkeit öffentlich zugänglicher Amateurfunkdaten (Art. 6 Abs. 1 lit. f DSGVO).</p>
 <h3>c) Lokale Speicherung</h3>
 <p>Favoriten, Suchverlauf und ein Zwischenspeicher zuvor gefundener Rufzeichen werden ausschließlich <strong>lokal auf deinem Gerät</strong> gespeichert und nicht an uns übertragen. Du kannst sie jederzeit in der App löschen oder durch Deinstallation entfernen.</p>
 
 <h3>d) Standort-Locator (Geocoding)</h3>
-<p>Für deutsche und kanadische Rufzeichen wird die vom jeweiligen Amt (BNetzA bzw. ISED Kanada) angegebene Betriebsort-Anschrift <strong>serverseitig</strong> einmalig in einen Amateurfunk-Standortkenner (Maidenhead-Locator) und Koordinaten umgerechnet. Dazu wird die – amtlich öffentlich einsehbare – Anschrift an den Geocoding-Dienst <em>Nominatim</em> von OpenStreetMap übermittelt und das Ergebnis zwischengespeichert, damit dieselbe Anschrift nicht erneut übertragen wird. Es werden keine Nutzer- oder Gerätedaten dabei übertragen. Geodaten © OpenStreetMap-Mitwirkende (ODbL).</p>
+<p>Für Rufzeichen, zu denen eine amtliche Betriebsort-Anschrift oder ein Ort vorliegt, wird dieser <strong>serverseitig</strong> einmalig in einen Amateurfunk-Standortkenner (Maidenhead-Locator) und Koordinaten umgerechnet. Dazu wird die – amtlich öffentlich einsehbare – Anschrift an den Geocoding-Dienst <em>Nominatim</em> von OpenStreetMap übermittelt und das Ergebnis zwischengespeichert, damit dieselbe Anschrift nicht erneut übertragen wird. Es werden keine Nutzer- oder Gerätedaten dabei übertragen. Geodaten © OpenStreetMap-Mitwirkende (ODbL).</p>
 
 <h3>e) Kartenanzeige (OpenStreetMap)</h3>
 <p>In der Detailansicht kann eine Karte den ermittelten Standort anzeigen. Die Kartenkacheln werden dabei <strong>direkt von den Servern des OpenStreetMap-Projekts</strong> (u. a. tile.openstreetmap.org) auf dein Gerät geladen. Technisch bedingt wird dabei deine IP-Adresse an diese Server übertragen; weitere personenbezogene Daten werden nicht gesendet. Bereits geladene Kacheln werden lokal auf dem Gerät zwischengespeichert. Es gilt die Nutzungsrichtlinie von OpenStreetMap (<a href="https://operations.osmfoundation.org/policies/tiles/">Tile Usage Policy</a>). Kartendaten © OpenStreetMap-Mitwirkende (ODbL).</p>
@@ -51,7 +52,7 @@ E-Mail: <a href="mailto:Mail@mathiaskasper.de">Mail@mathiaskasper.de</a>
 <p>Über die genannten Suchanfragen hinaus gibt die App keine Daten an Dritte weiter. Es werden keine Analyse- oder Werbedienste eingesetzt.</p>
 
 <h2>6. Betroffenenrechte / Widerspruch</h2>
-<p>Die angezeigten Halterdaten stammen aus der amtlichen Rufzeichenliste der Bundesnetzagentur. Wünsche zur Berichtigung, Sperrung oder Löschung dieser Eintragung richtest du bitte direkt an die <strong>Bundesnetzagentur</strong>, da diese die datenführende Stelle ist. Unabhängig davon kannst du dich mit Fragen zur App jederzeit an den oben genannten Verantwortlichen wenden. Dir stehen die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung und Widerspruch (Art. 15–21 DSGVO) sowie ein Beschwerderecht bei einer Aufsichtsbehörde zu.</p>
+<p>Die angezeigten Halterdaten stammen aus den amtlichen Rufzeichenregistern der jeweils zuständigen Behörde (z. B. BNetzA, FCC, ISED, Traficom, NMHH, ČTÚ, Nkom, RRT, ANCOM, UKE). Wünsche zur Berichtigung, Sperrung oder Löschung einer Eintragung richtest du bitte direkt an die <strong>jeweils zuständige Behörde</strong>, da diese die datenführende Stelle ist. Unabhängig davon kannst du dich mit Fragen zur App jederzeit an den oben genannten Verantwortlichen wenden. Dir stehen die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung und Widerspruch (Art. 15–21 DSGVO) sowie ein Beschwerderecht bei einer Aufsichtsbehörde zu.</p>
 
 <h2>7. Kontakt</h2>
 <p>Bei Fragen zum Datenschutz: <a href="mailto:Mail@mathiaskasper.de">Mail@mathiaskasper.de</a></p>
