@@ -136,12 +136,14 @@ object Loc {
     val toggleServerTitle get() = s("Internationale Suche (Server)", "International search (server)")
     val toggleServerSub get() = s(
         "Erkennt das Land am Präfix und fragt automatisch die beste Quelle ab: " +
-            "offiziell für Deutschland (BNetzA), USA (FCC/Callook), Kanada (ISED), Finnland " +
-            "(Traficom), Ungarn (NMHH) und Tschechien (ČTÚ). Andere Länder nur, wenn " +
-            "serverseitig eine Community-Quelle konfiguriert ist.",
+            "offiziell für Deutschland (BNetzA), USA (FCC/Callook), Kanada (ISED), " +
+            "Finnland (Traficom), Ungarn (NMHH), Tschechien (ČTÚ), Norwegen (Nkom), " +
+            "Litauen (RRT) und Rumänien (ANCOM). Andere Länder nur, wenn serverseitig " +
+            "eine Community-Quelle konfiguriert ist.",
         "Detects the country from the prefix and automatically queries the best source: " +
-            "official for Germany (BNetzA), USA (FCC/Callook), Canada (ISED), Finland " +
-            "(Traficom), Hungary (NMHH) and Czechia (ČTÚ). Other countries only if a " +
+            "official for Germany (BNetzA), USA (FCC/Callook), Canada (ISED), " +
+            "Finland (Traficom), Hungary (NMHH), Czechia (ČTÚ), Norway (Nkom), " +
+            "Lithuania (RRT) and Romania (ANCOM). Other countries only if a " +
             "community source is configured on the server."
     )
     val toggleBnetzaTitle get() = s("BNetzA-Onlineabfrage (Gerät)", "BNetzA online lookup (device)")
