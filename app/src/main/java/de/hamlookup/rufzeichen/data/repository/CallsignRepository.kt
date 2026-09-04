@@ -27,6 +27,13 @@ data class SearchOutcome(
     val message: String? = null
 )
 
+/** A favourite plus its user note and stored coordinates (for distance sort). */
+data class FavoriteItem(
+    val callsign: Callsign,
+    val note: String?,
+    val addedAt: Long
+)
+
 class CallsignRepository(
     private val context: Context,
     private val dao: CallsignDao,
@@ -38,6 +45,11 @@ class CallsignRepository(
 
     val favorites: Flow<List<Callsign>> =
         dao.observeFavorites().map { list -> list.map { it.toCallsign() } }
+
+    val favoriteItems: Flow<List<FavoriteItem>> =
+        dao.observeFavorites().map { list ->
+            list.map { FavoriteItem(it.toCallsign(), it.note, it.addedAt) }
+        }
 
     val history: Flow<List<HistoryEntity>> = dao.observeHistory()
 
@@ -51,13 +63,19 @@ class CallsignRepository(
                     holderName = callsign.holderName,
                     licenceClass = callsign.licenceClass,
                     qth = callsign.qth,
-                    country = callsign.country ?: callsign.analysis?.country
+                    country = callsign.country ?: callsign.analysis?.country,
+                    locator = callsign.locator,
+                    lat = callsign.latitude,
+                    lon = callsign.longitude
                 )
             )
         } else {
             dao.removeFavorite(callsign.callsign.uppercase())
         }
     }
+
+    suspend fun updateFavoriteNote(callsign: String, note: String?) =
+        dao.updateFavoriteNote(callsign.uppercase(), note?.trim()?.takeIf { it.isNotBlank() })
 
     suspend fun clearHistory() = dao.clearHistory()
 
@@ -235,6 +253,9 @@ private fun FavoriteEntity.toCallsign(): Callsign = Callsign(
     licenceClass = licenceClass,
     qth = cleanCity(qth),
     country = country,
+    locator = locator,
+    latitude = lat,
+    longitude = lon,
     sources = emptySet(),
     analysis = CallsignAnalyzer.analyze(callsign)
 )

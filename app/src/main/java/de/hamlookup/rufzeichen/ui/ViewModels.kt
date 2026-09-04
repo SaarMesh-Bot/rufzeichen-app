@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.data.repository.CallsignRepository
+import de.hamlookup.rufzeichen.data.repository.FavoriteItem
 import de.hamlookup.rufzeichen.data.repository.SearchOutcome
 import de.hamlookup.rufzeichen.data.repository.Settings
 import de.hamlookup.rufzeichen.data.repository.SettingsRepository
@@ -12,8 +13,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import de.hamlookup.rufzeichen.ui.detail.greatCircleKm
+import de.hamlookup.rufzeichen.ui.detail.maidenheadToCenter
 import kotlinx.coroutines.launch
 
 /** UI state for the search screen. */
@@ -71,15 +75,61 @@ class SearchViewModel(
     }
 }
 
+enum class FavSort { ADDED, DISTANCE }
+
+/** A favourite plus the distance from the user's own QTH (null if unknown). */
+data class FavoriteRow(val item: FavoriteItem, val distanceKm: Double?)
+
 class FavoritesViewModel(
-    private val repository: CallsignRepository
+    private val repository: CallsignRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
-    val favorites = repository.favorites.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
-    )
+
+    private val _sort = MutableStateFlow(FavSort.ADDED)
+    val sort: StateFlow<FavSort> = _sort.asStateFlow()
+
+    val hasOwnQth: StateFlow<Boolean> = settingsRepository.settings
+        .map { ownPoint(it) != null }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val favorites: StateFlow<List<FavoriteRow>> =
+        combine(repository.favoriteItems, settingsRepository.settings, _sort) { items, settings, sort ->
+            val own = ownPoint(settings)
+            val rows = items.map { fi ->
+                val d = if (own != null) {
+                    favPoint(fi)?.let { p -> greatCircleKm(own.first, own.second, p.first, p.second) }
+                } else null
+                FavoriteRow(fi, d)
+            }
+            when (sort) {
+                FavSort.ADDED -> rows.sortedByDescending { it.item.addedAt }
+                FavSort.DISTANCE -> rows.sortedWith(
+                    compareBy(nullsLast()) { it.distanceKm }
+                )
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setSort(mode: FavSort) { _sort.value = mode }
+
+    fun updateNote(callsign: String, note: String?) = viewModelScope.launch {
+        repository.updateFavoriteNote(callsign, note)
+    }
 
     fun remove(callsign: Callsign) = viewModelScope.launch {
         repository.toggleFavorite(callsign, false)
+    }
+
+    private fun ownPoint(s: Settings): Pair<Double, Double>? = when {
+        s.ownLat != null && s.ownLon != null -> s.ownLat to s.ownLon
+        else -> maidenheadToCenter(s.ownLocator.ifBlank { null })
+    }
+
+    private fun favPoint(fi: FavoriteItem): Pair<Double, Double>? {
+        val c = fi.callsign
+        return when {
+            c.latitude != null && c.longitude != null -> c.latitude to c.longitude
+            else -> maidenheadToCenter(c.locator)
+        }
     }
 }
 
@@ -105,7 +155,7 @@ class AppViewModelFactory(
         modelClass.isAssignableFrom(SearchViewModel::class.java) ->
             SearchViewModel(callsignRepository) as T
         modelClass.isAssignableFrom(FavoritesViewModel::class.java) ->
-            FavoritesViewModel(callsignRepository) as T
+            FavoritesViewModel(callsignRepository, settingsRepository) as T
         modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
             SettingsViewModel(settingsRepository) as T
         else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")

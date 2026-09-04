@@ -22,6 +22,9 @@ interface CallsignDao {
     @Query("DELETE FROM favorites WHERE callsign = :callsign")
     suspend fun removeFavorite(callsign: String)
 
+    @Query("UPDATE favorites SET note = :note WHERE callsign = :callsign")
+    suspend fun updateFavoriteNote(callsign: String, note: String?)
+
     // ---- History ----
     @Query("SELECT * FROM history ORDER BY searchedAt DESC LIMIT 50")
     fun observeHistory(): Flow<List<HistoryEntity>>

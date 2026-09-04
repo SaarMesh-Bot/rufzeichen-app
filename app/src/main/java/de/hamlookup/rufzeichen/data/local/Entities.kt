@@ -11,6 +11,10 @@ data class FavoriteEntity(
     val licenceClass: String?,
     val qth: String?,
     val country: String?,
+    val locator: String? = null,
+    val lat: Double? = null,
+    val lon: Double? = null,
+    val note: String? = null,
     val addedAt: Long = System.currentTimeMillis()
 )
 

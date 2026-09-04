@@ -11,12 +11,15 @@ import java.util.Locale
 object Loc {
     private val en: Boolean get() = Locale.getDefault().language == "en"
     private fun s(de: String, en: String): String = if (this.en) en else de
+    /** Public bilingual picker for data layers (e.g. band-plan text). */
+    fun pick(de: String, en: String): String = s(de, en)
 
     // ---- navigation / general ------------------------------------------------
     val appBarTitle get() = s("Rufzeichen · Amateurfunk", "Rufzeichen · Amateur Radio")
     val tabSearch get() = s("Suche", "Search")
     val tabFavorites get() = s("Favoriten", "Favorites")
     val tabSettings get() = s("Einstellungen", "Settings")
+    val tabBands get() = s("Bänder", "Bands")
     val amateurRadio get() = s("Amateurfunk", "Amateur Radio")
 
     // ---- search --------------------------------------------------------------
@@ -138,12 +141,12 @@ object Loc {
         "Erkennt das Land am Präfix und fragt automatisch die beste Quelle ab: " +
             "offiziell für Deutschland (BNetzA), USA (FCC/Callook), Kanada (ISED), " +
             "Finnland (Traficom), Ungarn (NMHH), Tschechien (ČTÚ), Norwegen (Nkom), " +
-            "Litauen (RRT) und Rumänien (ANCOM). Andere Länder nur, wenn serverseitig " +
+            "Litauen (RRT), Rumänien (ANCOM) und Polen (UKE). Andere Länder nur, wenn serverseitig " +
             "eine Community-Quelle konfiguriert ist.",
         "Detects the country from the prefix and automatically queries the best source: " +
             "official for Germany (BNetzA), USA (FCC/Callook), Canada (ISED), " +
             "Finland (Traficom), Hungary (NMHH), Czechia (ČTÚ), Norway (Nkom), " +
-            "Lithuania (RRT) and Romania (ANCOM). Other countries only if a " +
+            "Lithuania (RRT), Romania (ANCOM) and Poland (UKE). Other countries only if a " +
             "community source is configured on the server."
     )
     val toggleBnetzaTitle get() = s("BNetzA-Onlineabfrage (Gerät)", "BNetzA online lookup (device)")
@@ -202,5 +205,48 @@ object Loc {
     val noOnlineHits get() = s(
         "Keine Online-Treffer – nur Offline-Analyse.",
         "No online matches – offline analysis only."
+    )
+
+    // ---- band plans ----------------------------------------------------------
+    val bandsTitle get() = s("Bandpläne & Rechte", "Band plans & privileges")
+    val bandsIntroDE get() = s(
+        "Maximale Sendeleistung je Amateurfunkband nach Zeugnisklasse (A / E / N).",
+        "Maximum transmit power per amateur band by licence class (A / E / N)."
+    )
+    val bandsColBand get() = s("Band", "Band")
+    val bandsColRange get() = s("Frequenz", "Frequency")
+    val bandsClassSummary get() = s("Klassen im Überblick", "Classes at a glance")
+    val bandsClassN get() = s(
+        "Klasse N (Einsteiger, seit 2024): 10 m, 2 m, 70 cm – nur in Deutschland gültig.",
+        "Class N (entry, since 2024): 10 m, 2 m, 70 cm – valid in Germany only."
+    )
+    val bandsClassE get() = s(
+        "Klasse E: Kurzwelle (160/80/15/10 m) plus alle UKW-Bänder, bis 100 W. CEPT-Novice.",
+        "Class E: HF (160/80/15/10 m) plus all VHF/UHF bands, up to 100 W. CEPT Novice."
+    )
+    val bandsClassA get() = s(
+        "Klasse A: alle Amateurbänder, bis 750 W. CEPT/HAREC (weltweit).",
+        "Class A: all amateur bands, up to 750 W. CEPT/HAREC (worldwide)."
+    )
+    val bandsDisclaimer get() = s(
+        "Angaben ohne Gewähr. Maßgeblich ist der amtliche Frequenzplan des jeweiligen Landes " +
+            "(DE: BNetzA, US: FCC, CA: ISED).",
+        "Provided without guarantee. The authoritative source is each country's official band plan " +
+            "(DE: BNetzA, US: FCC, CA: ISED)."
+    )
+
+    // ---- favorites: distance & notes -----------------------------------------
+    val favSortAdded get() = s("Zuletzt hinzugefügt", "Recently added")
+    val favSortDistance get() = s("Nach Entfernung", "By distance")
+    val favSortLabel get() = s("Sortierung", "Sort")
+    val favNote get() = s("Notiz", "Note")
+    val favNoteHint get() = s("Notiz zu diesem Rufzeichen …", "Note for this call sign …")
+    val favEditNote get() = s("Notiz bearbeiten", "Edit note")
+    val favSave get() = s("Speichern", "Save")
+    val favCancel get() = s("Abbrechen", "Cancel")
+    fun favDistanceKm(km: Int) = s("$km km entfernt", "$km km away")
+    val favNoQth get() = s(
+        "Für die Entfernungssortierung im Reiter „Einstellungen\" deinen Standort setzen.",
+        "Set your location in the Settings tab to sort favorites by distance."
     )
 }
