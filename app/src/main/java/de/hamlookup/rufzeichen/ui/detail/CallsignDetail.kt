@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import de.hamlookup.rufzeichen.data.model.Callsign
+import de.hamlookup.rufzeichen.ui.Loc
 import kotlin.math.roundToInt
 import de.hamlookup.rufzeichen.ui.common.DetailRow
 import de.hamlookup.rufzeichen.ui.common.ProvenanceBadge
@@ -69,20 +70,20 @@ fun CallsignDetailContent(
                     .weight(1f)
                     .combinedClickable(
                         onClick = {},
-                        onLongClick = { copyToClipboard(context, "Rufzeichen", callsign.callsign) }
+                        onLongClick = { copyToClipboard(context, Loc.callsignLabel, callsign.callsign) }
                     )
             )
             IconButton(onClick = { shareCallsign(context, callsign) }) {
                 Icon(
                     imageVector = Icons.Filled.Share,
-                    contentDescription = "Teilen",
+                    contentDescription = Loc.share,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             IconButton(onClick = { onToggleFavorite(!isFavorite) }) {
                 Icon(
                     imageVector = Icons.Filled.Star,
-                    contentDescription = if (isFavorite) "Aus Favoriten entfernen" else "Zu Favoriten",
+                    contentDescription = if (isFavorite) Loc.removeFavorite else Loc.addFavorite,
                     tint = if (isFavorite) MaterialTheme.colorScheme.tertiary
                     else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                 )
@@ -124,23 +125,23 @@ fun CallsignDetailContent(
             callsign.qth != null || callsign.licenseStatus != null ||
             callsign.locator != null || callsign.extra.isNotEmpty()
         if (hasSourceData) {
-            SectionTitle("Zuteilungsdaten")
-            callsign.holderName?.let { DetailRow("Inhaber", it) }
-            callsign.licenceClass?.let { DetailRow("Klasse", it) }
-            callsign.licenseStatus?.let { DetailRow("Status", it) }
-            callsign.qth?.let { DetailRow("Standort", it) }
+            SectionTitle(Loc.sectionAllocation)
+            callsign.holderName?.let { DetailRow(Loc.rowHolder, it) }
+            callsign.licenceClass?.let { DetailRow(Loc.rowClass, it) }
+            callsign.licenseStatus?.let { DetailRow(Loc.rowStatus, it) }
+            callsign.qth?.let { DetailRow(Loc.rowLocation, it) }
             val land = when {
                 callsign.country != null && callsign.countryCode != null ->
                     "${callsign.country} (${callsign.countryCode})"
                 else -> callsign.country
             }
-            land?.let { DetailRow("Land", it) }
+            land?.let { DetailRow(Loc.rowCountry, it) }
             val locLabel = locatorLabel(callsign.latitude, callsign.longitude, callsign.locator)
             locLabel?.let { loc ->
                 Box(Modifier.combinedClickable(
                     onClick = {},
-                    onLongClick = { copyToClipboard(context, "Locator", loc) }
-                )) { DetailRow("Locator", loc) }
+                    onLongClick = { copyToClipboard(context, Loc.rowLocator, loc) }
+                )) { DetailRow(Loc.rowLocator, loc) }
             }
             // Any additional key/value pairs not already shown.
             val shown = setOf("Name", "Inhaber", "Klasse", "Ort", "QTH", "Standort", "Land")
@@ -152,7 +153,7 @@ fun CallsignDetailContent(
             // backend coordinates or (fallback) the centre of the locator grid.
             if (stationPoint != null) {
                 Spacer(Modifier.height(12.dp))
-                SectionTitle("Standort (Karte)")
+                SectionTitle(Loc.sectionMap)
                 Spacer(Modifier.height(8.dp))
                 val showLine = ownPoint != null && !isOwnStation
                 LocationMap(
@@ -168,15 +169,15 @@ fun CallsignDetailContent(
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "Karte: © OpenStreetMap-Mitwirkende (ODbL). Position gemäß " +
-                        (if (callsign.latitude != null) "ermittelter Anschrift." else "QTH-Locator (ungefähr).") +
-                        (if (showLine) " Blaue Linie: Großkreis von deinem Standort." else ""),
+                    Loc.mapAttrPrefix +
+                        (if (callsign.latitude != null) Loc.mapAttrAddress else Loc.mapAttrLocator) +
+                        (if (showLine) Loc.mapAttrLine else ""),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "In Karte öffnen",
+                    Loc.openInMap,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.combinedClickable(
@@ -194,9 +195,9 @@ fun CallsignDetailContent(
 
         // Distance & bearing from the user's own QTH to this station.
         if (isOwnStation) {
-            SectionTitle("Standort")
+            SectionTitle(Loc.rowLocation)
             Text(
-                "Das ist dein eigener Standort.",
+                Loc.ownStation,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -206,18 +207,17 @@ fun CallsignDetailContent(
             val shortBrg = initialBearing(ownPoint.first, ownPoint.second,
                 stationPoint.first, stationPoint.second).roundToInt() % 360
             val longBrg = (shortBrg + 180) % 360
-            SectionTitle("Entfernung & Peilung")
-            DetailRow("Entfernung", "${km.roundToInt()} km")
-            DetailRow("Peilung (Kurzpfad)", "$shortBrg°")
-            DetailRow("Peilung (Langpfad)", "$longBrg°")
+            SectionTitle(Loc.sectionDistBearing)
+            DetailRow(Loc.rowDistance, "${km.roundToInt()} km")
+            DetailRow(Loc.rowBearingShort, "$shortBrg°")
+            DetailRow(Loc.rowBearingLong, "$longBrg°")
             locatorLabel(ownLat, ownLon, ownLocator)?.let {
-                DetailRow("von deinem Standort", it)
+                DetailRow(Loc.rowFromYourQth, it)
             }
             HorizontalDivider(Modifier.padding(vertical = 12.dp))
         } else if (stationPoint != null && ownLocator.isNullOrBlank()) {
             Text(
-                "Tipp: Hinterlege deinen Standort (Locator) in den Einstellungen, um " +
-                    "Entfernung und Peilung zu dieser Station zu sehen.",
+                Loc.tipSetLocator,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -226,19 +226,19 @@ fun CallsignDetailContent(
 
         // Offline analysis
         callsign.analysis?.let { a ->
-            SectionTitle("Rufzeichen-Analyse (offline)")
-            DetailRow("Präfix", a.prefix)
-            if (a.number.isNotEmpty()) DetailRow("Ziffer", a.number)
-            if (a.suffix.isNotEmpty()) DetailRow("Suffix", a.suffix)
-            DetailRow("Land (ITU)", "${a.country} (${a.countryCode})")
-            a.continent?.let { DetailRow("Kontinent", continentName(it)) }
-            a.cqZone?.let { DetailRow("CQ-Zone", it.toString()) }
-            a.ituZone?.let { DetailRow("ITU-Zone", it.toString()) }
-            a.germanClass?.let { DetailRow("Klasse (geschätzt)", it) }
+            SectionTitle(Loc.sectionAnalysis)
+            DetailRow(Loc.rowPrefix, a.prefix)
+            if (a.number.isNotEmpty()) DetailRow(Loc.rowDigit, a.number)
+            if (a.suffix.isNotEmpty()) DetailRow(Loc.rowSuffix, a.suffix)
+            DetailRow(Loc.rowCountryItu, "${a.country} (${a.countryCode})")
+            a.continent?.let { DetailRow(Loc.rowContinent, Loc.continentName(it)) }
+            a.cqZone?.let { DetailRow(Loc.rowCqZone, it.toString()) }
+            a.ituZone?.let { DetailRow(Loc.rowItuZone, it.toString()) }
+            a.germanClass?.let { DetailRow(Loc.rowClassEstimated, it) }
             a.currentLocation?.let { loc ->
-                DetailRow("Aktueller Standort", a.currentLocationCode?.let { "$loc ($it)" } ?: loc)
+                DetailRow(Loc.rowCurrentLocation, a.currentLocationCode?.let { "$loc ($it)" } ?: loc)
             }
-            a.operatingMode?.let { DetailRow("Betriebsart", it) }
+            a.operatingMode?.let { DetailRow(Loc.rowOperatingMode, it) }
             if (a.notes.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 a.notes.forEach { note ->
@@ -254,46 +254,35 @@ fun CallsignDetailContent(
     }
 }
 
-private fun continentName(code: String): String = when (code.uppercase()) {
-    "EU" -> "Europa (EU)"
-    "AS" -> "Asien (AS)"
-    "NA" -> "Nordamerika (NA)"
-    "SA" -> "Südamerika (SA)"
-    "AF" -> "Afrika (AF)"
-    "OC" -> "Ozeanien (OC)"
-    "AN" -> "Antarktis (AN)"
-    else -> code
-}
-
 private fun copyToClipboard(context: Context, label: String, text: String) {
     val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
     cm.setPrimaryClip(ClipData.newPlainText(label, text))
-    Toast.makeText(context, "$label kopiert", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, Loc.copied(label), Toast.LENGTH_SHORT).show()
 }
 
 private fun shareCallsign(context: Context, c: Callsign) {
     val lines = buildList {
         val holder = c.holderName
         add(if (holder != null) "${c.callsign} – $holder" else c.callsign)
-        c.licenceClass?.let { add("Klasse: $it") }
+        c.licenceClass?.let { add(Loc.shareClass(it)) }
         val land = when {
             c.country != null && c.countryCode != null -> "${c.country} (${c.countryCode})"
             else -> c.country
         }
-        land?.let { add("Land: $it") }
-        c.qth?.let { add("Standort: $it") }
-        c.locator?.let { add("Locator: $it") }
+        land?.let { add(Loc.shareCountry(it)) }
+        c.qth?.let { add(Loc.shareLocation(it)) }
+        c.locator?.let { add(Loc.shareLocator(it)) }
         c.analysis?.let { a ->
             a.currentLocation?.let { cur ->
-                add("Aktuell in: " + (a.currentLocationCode?.let { "$cur ($it)" } ?: cur))
+                add(Loc.shareCurrentIn(a.currentLocationCode?.let { "$cur ($it)" } ?: cur))
             }
-            a.operatingMode?.let { add("Betriebsart: $it") }
+            a.operatingMode?.let { add(Loc.shareMode(it)) }
         }
         c.sourceName?.let { src ->
-            add("Quelle: $src" + if (c.official == true) " (offiziell)" else "")
+            add(Loc.shareSource(src, c.official == true))
         }
         add("")
-        add("via Rufzeichen – Amateurfunk")
+        add(Loc.shareFooter)
     }
     val text = lines.joinToString("\n")
     val intent = Intent(Intent.ACTION_SEND).apply {
@@ -301,5 +290,5 @@ private fun shareCallsign(context: Context, c: Callsign) {
         putExtra(Intent.EXTRA_SUBJECT, "Rufzeichen ${c.callsign}")
         putExtra(Intent.EXTRA_TEXT, text)
     }
-    runCatching { context.startActivity(Intent.createChooser(intent, "Teilen")) }
+    runCatching { context.startActivity(Intent.createChooser(intent, Loc.share)) }
 }

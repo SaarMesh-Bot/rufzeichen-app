@@ -42,6 +42,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.hamlookup.rufzeichen.ui.Loc
 import de.hamlookup.rufzeichen.ui.SettingsViewModel
 import de.hamlookup.rufzeichen.ui.detail.LocatorPickerMap
 
@@ -74,11 +75,10 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        Text("Mein Standort", style = MaterialTheme.typography.headlineSmall)
+        Text(Loc.headMyLocation, style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Für Entfernung und Peilung zu gesuchten Stationen. Der Locator ist ein " +
-                "Maidenhead-Kenner (z. B. JN39 oder JN39KF).",
+            Loc.myLocationHint,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -90,7 +90,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 callText = t
                 viewModel.update(settings.copy(ownCallsign = t))
             },
-            label = { Text("Eigenes Rufzeichen (optional)") },
+            label = { Text(Loc.ownCallsignLabel) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
             modifier = Modifier.fillMaxWidth().onFocusChanged { callFocused = it.isFocused }
@@ -103,41 +103,37 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 locText = t
                 viewModel.update(settings.copy(ownLocator = t, ownLat = null, ownLon = null))
             },
-            label = { Text("Eigener Locator (Maidenhead)") },
-            placeholder = { Text("z. B. JN39KF") },
+            label = { Text(Loc.ownLocatorLabel) },
+            placeholder = { Text(Loc.locatorPlaceholder) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
             modifier = Modifier.fillMaxWidth().onFocusChanged { locFocused = it.isFocused }
         )
-        TextButton(onClick = { showPicker = true }) { Text("Standort auf Karte wählen") }
+        TextButton(onClick = { showPicker = true }) { Text(Loc.pickOnMap) }
         HorizontalDivider(Modifier.padding(vertical = 12.dp))
 
-        Text("Datenquellen", style = MaterialTheme.typography.headlineSmall)
+        Text(Loc.headSources, style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(12.dp))
 
         ToggleRow(
-            title = "Internationale Suche (Server)",
-            subtitle = "Erkennt das Land am Präfix und fragt automatisch die beste Quelle ab: " +
-                "offiziell für Deutschland (BNetzA), USA (FCC/Callook) und Kanada (ISED). " +
-                "Andere Länder nur, " +
-                "wenn serverseitig eine Community-Quelle konfiguriert ist.",
+            title = Loc.toggleServerTitle,
+            subtitle = Loc.toggleServerSub,
             checked = settings.useBackend,
             onCheckedChange = { viewModel.update(settings.copy(useBackend = it)) }
         )
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
         ToggleRow(
-            title = "BNetzA-Onlineabfrage (Gerät)",
-            subtitle = "Direkte Abfrage der Bundesnetzagentur vom Gerät – auch für die " +
-                "Platzhalter-Suche (z. B. db2*k) und als Fallback ohne Server.",
+            title = Loc.toggleBnetzaTitle,
+            subtitle = Loc.toggleBnetzaSub,
             checked = settings.useBnetza,
             onCheckedChange = { viewModel.update(settings.copy(useBnetza = it)) }
         )
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
         ToggleRow(
-            title = "HamQTH (Gerät, international)",
-            subtitle = "Weltweite Community-Datenbank direkt vom Gerät. Kostenloses Konto erforderlich.",
+            title = Loc.toggleHamqthTitle,
+            subtitle = Loc.toggleHamqthSub,
             checked = settings.useHamQth,
             onCheckedChange = { viewModel.update(settings.copy(useHamQth = it)) }
         )
@@ -147,66 +143,61 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             PersistedTextField(
                 value = settings.hamQthUser,
                 onCommit = { viewModel.update(settings.copy(hamQthUser = it)) },
-                label = "HamQTH-Benutzername"
+                label = Loc.hamqthUser
             )
             Spacer(Modifier.height(8.dp))
             PersistedTextField(
                 value = settings.hamQthPass,
                 onCommit = { viewModel.update(settings.copy(hamQthPass = it)) },
-                label = "HamQTH-Passwort",
+                label = Loc.hamqthPass,
                 password = true
             )
         }
 
         HorizontalDivider(Modifier.padding(vertical = 12.dp))
-        Text("Offline", style = MaterialTheme.typography.headlineSmall)
+        Text(Loc.headOffline, style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Die Rufzeichen-Analyse (Präfix, Land, geschätzte Klasse) funktioniert immer offline. " +
-                "Zuvor online gefundene Rufzeichen werden lokal gespeichert und sind ohne Internet durchsuchbar.",
+            Loc.offlineText,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         HorizontalDivider(Modifier.padding(vertical = 12.dp))
         Text(
-            "Hinweis: Offizielle Halterdaten stammen aus den amtlichen Quellen (BNetzA, FCC). " +
-                "Community-Datenbanken sind als solche gekennzeichnet und werden nie als „behördlich " +
-                "bestätigt“ dargestellt. Ein vorübergehender Ausfall einer Quelle bedeutet nicht, " +
-                "dass ein Rufzeichen nicht existiert.",
+            Loc.noteSources,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         HorizontalDivider(Modifier.padding(vertical = 12.dp))
         Text(
-            "Geodaten © OpenStreetMap-Mitwirkende (ODbL). Der QTH-Locator wird " +
-                "serverseitig aus der Anschrift über OpenStreetMap/Nominatim ermittelt.",
+            Loc.osmAttr,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         HorizontalDivider(Modifier.padding(vertical = 12.dp))
-        Text("Über", style = MaterialTheme.typography.headlineSmall)
+        Text(Loc.headAbout, style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(8.dp))
         if (versionLabel.isNotBlank()) {
             Text(
-                "Version $versionLabel",
+                Loc.versionLine(versionLabel),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
         Text(
-            "Entwickelt von Mathias Kasper",
+            Loc.developedBy,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            "Kontakt & Feedback: app@saarmesh.de",
+            Loc.contactFeedback,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.clickable {
-                val subject = "Rufzeichen $versionLabel – Feedback"
+                val subject = Loc.feedbackSubject(versionLabel)
                 val intent = Intent(
                     Intent.ACTION_SENDTO,
                     Uri.parse("mailto:app@saarmesh.de?subject=" + Uri.encode(subject))
@@ -216,7 +207,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            "Datenschutzerklärung",
+            Loc.privacyPolicy,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.clickable {
@@ -236,10 +227,10 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         Dialog(onDismissRequest = { showPicker = false }) {
             Surface(shape = RoundedCornerShape(16.dp), tonalElevation = 6.dp) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Standort auf der Karte wählen", style = MaterialTheme.typography.titleMedium)
+                    Text(Loc.pickTitle, style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        "Tippe auf deine Position. Gewählt: " + picked.ifBlank { "—" },
+                        Loc.pickHint(picked.ifBlank { "—" }),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -259,7 +250,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         horizontalArrangement = Arrangement.End,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        TextButton(onClick = { showPicker = false }) { Text("Abbrechen") }
+                        TextButton(onClick = { showPicker = false }) { Text(Loc.cancel) }
                         Spacer(Modifier.width(8.dp))
                         TextButton(
                             onClick = {
@@ -269,7 +260,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                                 showPicker = false
                             },
                             enabled = picked.isNotBlank()
-                        ) { Text("Übernehmen") }
+                        ) { Text(Loc.apply) }
                     }
                 }
             }
