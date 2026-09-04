@@ -184,19 +184,40 @@ fun greatCircleGeoPoints(
 // Coordinates -> Maidenhead (6 chars) and "open in external map" helper.
 // --------------------------------------------------------------------------
 
-/** Convert coordinates to a 6-character Maidenhead locator. */
-fun latLonToMaidenhead(lat: Double, lon: Double): String {
-    val lonS = (lon + 180.0).coerceIn(0.0, 359.9999)
-    val latS = (lat + 90.0).coerceIn(0.0, 179.9999)
+/**
+ * Convert coordinates to a Maidenhead locator of [pairs] character pairs.
+ * pairs=2 -> 4 chars (square), 3 -> 6 (subsquare, default), 4 -> 8 (~0.5 km),
+ * 5 -> 10 (~20 m). Levels alternate letters (A–X, /24) and digits (0–9, /10).
+ */
+fun latLonToMaidenhead(lat: Double, lon: Double, pairs: Int = 3): String {
+    var lonv = (lon + 180.0).coerceIn(0.0, 359.999999)
+    var latv = (lat + 90.0).coerceIn(0.0, 89.999999 + 90.0)
     val sb = StringBuilder()
-    sb.append('A' + (lonS / 20).toInt())
-    sb.append('A' + (latS / 10).toInt())
-    sb.append(((lonS % 20) / 2).toInt())
-    sb.append((latS % 10).toInt())
-    sb.append('A' + ((lonS % 2) / (2.0 / 24.0)).toInt())
-    sb.append('A' + ((latS % 1.0) / (1.0 / 24.0)).toInt())
+    // Level 1 (field): 20° lon / 10° lat, letters.
+    var lonSize = 20.0
+    var latSize = 10.0
+    sb.append('A' + (lonv / lonSize).toInt())
+    sb.append('A' + (latv / latSize).toInt())
+    lonv %= lonSize; latv %= latSize
+    for (i in 2..pairs.coerceAtLeast(2)) {
+        if (i % 2 == 0) {                 // digit level: /10
+            lonSize /= 10.0; latSize /= 10.0
+            sb.append((lonv / lonSize).toInt())
+            sb.append((latv / latSize).toInt())
+        } else {                          // letter level: /24
+            lonSize /= 24.0; latSize /= 24.0
+            sb.append('A' + (lonv / lonSize).toInt())
+            sb.append('A' + (latv / latSize).toInt())
+        }
+        lonv %= lonSize; latv %= latSize
+    }
     return sb.toString()
 }
+
+/** Best locator label: a precise 8-char locator from exact coordinates,
+ *  otherwise the given fallback (e.g. a 6-char locator from a data source). */
+fun locatorLabel(lat: Double?, lon: Double?, fallback: String?): String? =
+    if (lat != null && lon != null) latLonToMaidenhead(lat, lon, 4) else fallback
 
 /** Open a position in the device's map/navigation app, falling back to OSM web. */
 fun openInMaps(context: android.content.Context, lat: Double, lon: Double, label: String?) {

@@ -117,7 +117,7 @@ fun CallsignDetailContent(
         val distanceKm = if (stationPoint != null && ownPoint != null)
             greatCircleKm(ownPoint.first, ownPoint.second, stationPoint.first, stationPoint.second)
         else null
-        val isOwnStation = selfByCallsign || (distanceKm != null && distanceKm < 2.0)
+        val isOwnStation = selfByCallsign || (distanceKm != null && distanceKm < 0.15)
 
         // Data from the sources
         val hasSourceData = callsign.holderName != null || callsign.licenceClass != null ||
@@ -135,7 +135,8 @@ fun CallsignDetailContent(
                 else -> callsign.country
             }
             land?.let { DetailRow("Land", it) }
-            callsign.locator?.let { loc ->
+            val locLabel = locatorLabel(callsign.latitude, callsign.longitude, callsign.locator)
+            locLabel?.let { loc ->
                 Box(Modifier.combinedClickable(
                     onClick = {},
                     onLongClick = { copyToClipboard(context, "Locator", loc) }
@@ -209,7 +210,9 @@ fun CallsignDetailContent(
             DetailRow("Entfernung", "${km.roundToInt()} km")
             DetailRow("Peilung (Kurzpfad)", "$shortBrg°")
             DetailRow("Peilung (Langpfad)", "$longBrg°")
-            ownLocator?.let { DetailRow("von deinem Standort", it) }
+            locatorLabel(ownLat, ownLon, ownLocator)?.let {
+                DetailRow("von deinem Standort", it)
+            }
             HorizontalDivider(Modifier.padding(vertical = 12.dp))
         } else if (stationPoint != null && ownLocator.isNullOrBlank()) {
             Text(
