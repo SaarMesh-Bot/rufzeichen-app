@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.ui.FavoritesViewModel
+import de.hamlookup.rufzeichen.ui.Loc
 import de.hamlookup.rufzeichen.ui.common.EmptyState
 import de.hamlookup.rufzeichen.ui.search.CallsignCard
 
@@ -24,7 +25,7 @@ fun FavoritesScreen(
     val favorites by viewModel.favorites.collectAsStateWithLifecycle()
 
     if (favorites.isEmpty()) {
-        EmptyState("Noch keine Favoriten gespeichert. Tippe in der Detailansicht auf den Stern.")
+        EmptyState(Loc.emptyFavorites)
         return
     }
 

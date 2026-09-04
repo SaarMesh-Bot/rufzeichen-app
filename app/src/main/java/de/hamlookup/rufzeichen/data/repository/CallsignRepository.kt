@@ -11,6 +11,7 @@ import de.hamlookup.rufzeichen.data.local.HistoryEntity
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.data.model.DataSourceType
 import de.hamlookup.rufzeichen.data.remote.BackendDataSource
+import de.hamlookup.rufzeichen.ui.Loc
 import de.hamlookup.rufzeichen.data.remote.BnetzaDataSource
 import de.hamlookup.rufzeichen.data.remote.HamQthDataSource
 import kotlinx.coroutines.flow.Flow
@@ -151,9 +152,9 @@ class CallsignRepository(
         dao.addHistory(HistoryEntity(query = query, resultCount = results.size))
 
         val message = when {
-            !online -> "Offline – Ergebnisse aus lokalem Cache und Analyse."
+            !online -> Loc.offlineResults
             merged.isEmpty() && backendMessage != null -> backendMessage
-            online && used.isEmpty() -> "Keine Online-Treffer – nur Offline-Analyse."
+            online && used.isEmpty() -> Loc.noOnlineHits
             else -> null
         }
         return SearchOutcome(results, used, !online, message)

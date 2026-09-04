@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.hamlookup.rufzeichen.data.model.DataSourceType
+import de.hamlookup.rufzeichen.ui.Loc
 
 /** Small colored chip that labels the source of a result. */
 @Composable
@@ -51,9 +52,9 @@ fun ProvenanceBadge(sourceName: String, official: Boolean?, modifier: Modifier =
         else -> MaterialTheme.colorScheme.secondary
     }
     val text = when (official) {
-        true -> "✓ Offizielle Quelle: $sourceName"
-        false -> "Community-Daten: $sourceName"
-        else -> "Quelle: $sourceName"
+        true -> Loc.officialSource(sourceName)
+        false -> Loc.communityData(sourceName)
+        else -> Loc.sourceGeneric(sourceName)
     }
     Surface(
         color = color.copy(alpha = 0.14f),

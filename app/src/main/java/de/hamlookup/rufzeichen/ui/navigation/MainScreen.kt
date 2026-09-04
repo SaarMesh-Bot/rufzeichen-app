@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.ui.AppViewModelFactory
+import de.hamlookup.rufzeichen.ui.Loc
 import de.hamlookup.rufzeichen.ui.FavoritesViewModel
 import de.hamlookup.rufzeichen.ui.SearchViewModel
 import de.hamlookup.rufzeichen.ui.SettingsViewModel
@@ -33,10 +34,10 @@ import de.hamlookup.rufzeichen.ui.favorites.FavoritesScreen
 import de.hamlookup.rufzeichen.ui.favorites.SettingsScreen
 import de.hamlookup.rufzeichen.ui.search.SearchScreen
 
-private enum class Tab(val label: String, val icon: ImageVector) {
-    Search("Suche", Icons.Filled.Search),
-    Favorites("Favoriten", Icons.Filled.Star),
-    Settings("Einstellungen", Icons.Filled.Settings)
+private enum class Tab(val icon: ImageVector) {
+    Search(Icons.Filled.Search),
+    Favorites(Icons.Filled.Star),
+    Settings(Icons.Filled.Settings)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,16 +54,21 @@ fun MainScreen(factory: AppViewModelFactory) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Rufzeichen · Amateurfunk") })
+            TopAppBar(title = { Text(Loc.appBarTitle) })
         },
         bottomBar = {
             NavigationBar {
                 Tab.entries.forEach { t ->
+                    val lbl = when (t) {
+                        Tab.Search -> Loc.tabSearch
+                        Tab.Favorites -> Loc.tabFavorites
+                        Tab.Settings -> Loc.tabSettings
+                    }
                     NavigationBarItem(
                         selected = tab == t,
                         onClick = { tab = t },
-                        icon = { Icon(t.icon, contentDescription = t.label) },
-                        label = { Text(t.label) }
+                        icon = { Icon(t.icon, contentDescription = lbl) },
+                        label = { Text(lbl) }
                     )
                 }
             }

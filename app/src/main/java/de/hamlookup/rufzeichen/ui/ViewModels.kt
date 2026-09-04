@@ -54,7 +54,7 @@ class SearchViewModel(
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     loading = false,
-                    error = e.message ?: "Unbekannter Fehler"
+                    error = e.message ?: Loc.unknownError
                 )
             }
         }

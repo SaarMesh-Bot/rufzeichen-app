@@ -46,6 +46,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.hamlookup.rufzeichen.data.model.Callsign
+import de.hamlookup.rufzeichen.ui.Loc
 import de.hamlookup.rufzeichen.ui.SearchViewModel
 import de.hamlookup.rufzeichen.ui.common.EmptyState
 import de.hamlookup.rufzeichen.ui.common.ProvenanceChip
@@ -69,14 +70,14 @@ fun SearchScreen(
         OutlinedTextField(
             value = state.query,
             onValueChange = viewModel::onQueryChange,
-            label = { Text("Rufzeichen") },
-            placeholder = { Text("z. B. DL1ABC, W1AW oder db2*k") },
+            label = { Text(Loc.searchLabel) },
+            placeholder = { Text(Loc.searchPlaceholder) },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             trailingIcon = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (state.query.isNotEmpty()) {
                         IconButton(onClick = { viewModel.onQueryChange("") }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Eingabe löschen")
+                            Icon(Icons.Filled.Close, contentDescription = Loc.clearInput)
                         }
                     }
                     if (history.isNotEmpty()) {
@@ -85,7 +86,7 @@ fun SearchScreen(
                             focusManager.clearFocus()
                             showHistory = true
                         }) {
-                            Icon(Icons.Filled.DateRange, contentDescription = "Suchverlauf")
+                            Icon(Icons.Filled.DateRange, contentDescription = Loc.searchHistory)
                         }
                     }
                 }
@@ -130,18 +131,15 @@ fun SearchScreen(
                 ) {
                     CircularProgressIndicator()
                     Spacer(Modifier.height(8.dp))
-                    Text("Suche läuft …")
+                    Text(Loc.searching)
                 }
             }
 
-            state.error != null -> EmptyState("Fehler: ${state.error}")
+            state.error != null -> EmptyState(Loc.errorPrefix(state.error ?: ""))
 
             state.outcome == null -> {
                 if (!dropdownVisible) {
-                    EmptyState(
-                        "Gib ein Rufzeichen ein. '*' ist als Platzhalter für ein Zeichen erlaubt. " +
-                            "Beim Tippen erscheint dein Verlauf; das Verlauf-Symbol zeigt die ganze Liste."
-                    )
+                    EmptyState(Loc.emptySearch)
                 }
             }
 
@@ -163,7 +161,7 @@ fun SearchScreen(
                     Spacer(Modifier.height(8.dp))
                 }
                 if (outcome.results.isEmpty()) {
-                    EmptyState("Keine Treffer gefunden.")
+                    EmptyState(Loc.noResults)
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(outcome.results, key = { it.callsign }) { c ->
@@ -178,11 +176,11 @@ fun SearchScreen(
     if (showHistory) {
         ModalBottomSheet(onDismissRequest = { showHistory = false }) {
             Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                Text("Suchverlauf", style = MaterialTheme.typography.titleMedium)
+                Text(Loc.searchHistory, style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 if (history.isEmpty()) {
                     Text(
-                        "Noch keine Suchanfragen.",
+                        Loc.noHistory,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -230,7 +228,7 @@ fun CallsignCard(callsign: Callsign, onClick: () -> Unit) {
             val subtitle = holder
                 ?: callsign.licenceClass
                 ?: callsign.country
-                ?: callsign.analysis?.let { "${it.country} · ${it.germanClass ?: "Amateurfunk"}" }
+                ?: callsign.analysis?.let { "${it.country} · ${it.germanClass ?: Loc.amateurRadio}" }
             subtitle?.let {
                 Spacer(Modifier.height(4.dp))
                 Text(it, style = MaterialTheme.typography.bodyLarge,
@@ -284,7 +282,7 @@ private fun HistoryDropdown(
                     IconButton(onClick = { onDelete(q) }) {
                         Icon(
                             Icons.Filled.Delete,
-                            contentDescription = "„$q“ aus dem Verlauf löschen",
+                            contentDescription = Loc.deleteFromHistory(q),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -306,10 +304,10 @@ private fun HistoryList(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Verlauf", style = MaterialTheme.typography.labelSmall,
+            Text(Loc.historyTitle, style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f))
-            TextButton(onClick = onClear) { Text("Alle löschen") }
+            TextButton(onClick = onClear) { Text(Loc.clearAll) }
         }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             items(history.distinct()) { q ->
@@ -326,7 +324,7 @@ private fun HistoryList(
                     IconButton(onClick = { onDelete(q) }) {
                         Icon(
                             Icons.Filled.Delete,
-                            contentDescription = "„$q“ aus dem Verlauf löschen",
+                            contentDescription = Loc.deleteFromHistory(q),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
