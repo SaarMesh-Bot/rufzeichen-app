@@ -8,8 +8,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [FavoriteEntity::class, HistoryEntity::class, CachedCallsignEntity::class],
-    version = 2,
+    entities = [FavoriteEntity::class, FavoriteListEntity::class, HistoryEntity::class, CachedCallsignEntity::class],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -27,13 +27,21 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE favorites ADD COLUMN listName TEXT")
+                db.execSQL("CREATE TABLE IF NOT EXISTS favorite_lists (" +
+                    "name TEXT NOT NULL PRIMARY KEY, createdAt INTEGER NOT NULL)")
+            }
+        }
+
         fun get(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "rufzeichen.db"
-                ).addMigrations(MIGRATION_1_2).fallbackToDestructiveMigration().build().also { INSTANCE = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).fallbackToDestructiveMigration().build().also { INSTANCE = it }
             }
     }
 }

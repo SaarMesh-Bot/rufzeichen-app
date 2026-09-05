@@ -7,6 +7,7 @@ import de.hamlookup.rufzeichen.data.analyzer.CallsignAnalyzer
 import de.hamlookup.rufzeichen.data.local.CachedCallsignEntity
 import de.hamlookup.rufzeichen.data.local.CallsignDao
 import de.hamlookup.rufzeichen.data.local.FavoriteEntity
+import de.hamlookup.rufzeichen.data.local.FavoriteListEntity
 import de.hamlookup.rufzeichen.data.local.HistoryEntity
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.data.model.DataSourceType
@@ -31,6 +32,7 @@ data class SearchOutcome(
 data class FavoriteItem(
     val callsign: Callsign,
     val note: String?,
+    val listName: String?,
     val addedAt: Long
 )
 
@@ -48,8 +50,11 @@ class CallsignRepository(
 
     val favoriteItems: Flow<List<FavoriteItem>> =
         dao.observeFavorites().map { list ->
-            list.map { FavoriteItem(it.toCallsign(), it.note, it.addedAt) }
+            list.map { FavoriteItem(it.toCallsign(), it.note, it.listName, it.addedAt) }
         }
+
+    val favoriteLists: Flow<List<String>> =
+        dao.observeLists().map { list -> list.map { it.name } }
 
     val history: Flow<List<HistoryEntity>> = dao.observeHistory()
 
@@ -76,6 +81,19 @@ class CallsignRepository(
 
     suspend fun updateFavoriteNote(callsign: String, note: String?) =
         dao.updateFavoriteNote(callsign.uppercase(), note?.trim()?.takeIf { it.isNotBlank() })
+
+    suspend fun createList(name: String) {
+        val n = name.trim()
+        if (n.isNotEmpty()) dao.addList(FavoriteListEntity(name = n))
+    }
+
+    suspend fun deleteList(name: String) {
+        dao.clearListAssignments(name)
+        dao.removeList(name)
+    }
+
+    suspend fun setFavoriteList(callsign: String, listName: String?) =
+        dao.updateFavoriteList(callsign.uppercase(), listName?.trim()?.takeIf { it.isNotBlank() })
 
     suspend fun clearHistory() = dao.clearHistory()
 

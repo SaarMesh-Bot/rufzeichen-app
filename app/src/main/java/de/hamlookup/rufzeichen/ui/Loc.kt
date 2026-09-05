@@ -245,6 +245,21 @@ object Loc {
     val favSave get() = s("Speichern", "Save")
     val favCancel get() = s("Abbrechen", "Cancel")
     fun favDistanceKm(km: Int) = s("$km km entfernt", "$km km away")
+    val favEditFavorite get() = s("Favorit bearbeiten", "Edit favorite")
+    val favListAll get() = s("Alle", "All")
+    val favListLabel get() = s("Liste", "List")
+    val favNoList get() = s("Keine", "None")
+    val favNewList get() = s("Neue Liste", "New list")
+    val favNewListShort get() = s("+ Neu", "+ New")
+    val favListNameHint get() = s("Listenname", "List name")
+    val favCreate get() = s("Anlegen", "Create")
+    val favDelete get() = s("Löschen", "Delete")
+    val favDeleteListTitle get() = s("Liste löschen", "Delete list")
+    fun favDeleteListMsg(name: String) = s(
+        "Liste „$name“ löschen? Die enthaltenen Favoriten bleiben erhalten und werden nur nicht mehr gruppiert.",
+        "Delete list “$name”? The favorites in it are kept and simply become ungrouped."
+    )
+    val favManageHint get() = s("Lange auf eine Liste tippen, um sie zu löschen.", "Long-press a list to delete it.")
     val favNoQth get() = s(
         "Für die Entfernungssortierung im Reiter „Einstellungen\" deinen Standort setzen.",
         "Set your location in the Settings tab to sort favorites by distance."

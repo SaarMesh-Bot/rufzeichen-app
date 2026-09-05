@@ -15,7 +15,15 @@ data class FavoriteEntity(
     val lat: Double? = null,
     val lon: Double? = null,
     val note: String? = null,
+    val listName: String? = null,
     val addedAt: Long = System.currentTimeMillis()
+)
+
+/** A user-defined favourite list (folder) used to group favourites. */
+@Entity(tableName = "favorite_lists")
+data class FavoriteListEntity(
+    @PrimaryKey val name: String,
+    val createdAt: Long = System.currentTimeMillis()
 )
 
 /** A past search query. */

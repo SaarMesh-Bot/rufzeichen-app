@@ -25,6 +25,22 @@ interface CallsignDao {
     @Query("UPDATE favorites SET note = :note WHERE callsign = :callsign")
     suspend fun updateFavoriteNote(callsign: String, note: String?)
 
+    // ---- Favourite lists (grouping) ----
+    @Query("SELECT * FROM favorite_lists ORDER BY createdAt")
+    fun observeLists(): Flow<List<FavoriteListEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addList(list: FavoriteListEntity)
+
+    @Query("DELETE FROM favorite_lists WHERE name = :name")
+    suspend fun removeList(name: String)
+
+    @Query("UPDATE favorites SET listName = NULL WHERE listName = :name")
+    suspend fun clearListAssignments(name: String)
+
+    @Query("UPDATE favorites SET listName = :listName WHERE callsign = :callsign")
+    suspend fun updateFavoriteList(callsign: String, listName: String?)
+
     // ---- History ----
     @Query("SELECT * FROM history ORDER BY searchedAt DESC LIMIT 50")
     fun observeHistory(): Flow<List<HistoryEntity>>

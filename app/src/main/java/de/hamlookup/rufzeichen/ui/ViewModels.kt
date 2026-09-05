@@ -88,14 +88,22 @@ class FavoritesViewModel(
     private val _sort = MutableStateFlow(FavSort.ADDED)
     val sort: StateFlow<FavSort> = _sort.asStateFlow()
 
+    // null = show all favourites; otherwise the selected list name.
+    private val _selectedList = MutableStateFlow<String?>(null)
+    val selectedList: StateFlow<String?> = _selectedList.asStateFlow()
+
+    val lists: StateFlow<List<String>> = repository.favoriteLists
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val hasOwnQth: StateFlow<Boolean> = settingsRepository.settings
         .map { ownPoint(it) != null }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val favorites: StateFlow<List<FavoriteRow>> =
-        combine(repository.favoriteItems, settingsRepository.settings, _sort) { items, settings, sort ->
+        combine(repository.favoriteItems, settingsRepository.settings, _sort, _selectedList) { items, settings, sort, sel ->
             val own = ownPoint(settings)
-            val rows = items.map { fi ->
+            val filtered = if (sel == null) items else items.filter { it.listName == sel }
+            val rows = filtered.map { fi ->
                 val d = if (own != null) {
                     favPoint(fi)?.let { p -> greatCircleKm(own.first, own.second, p.first, p.second) }
                 } else null
@@ -110,6 +118,19 @@ class FavoritesViewModel(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun setSort(mode: FavSort) { _sort.value = mode }
+
+    fun selectList(name: String?) { _selectedList.value = name }
+
+    fun createList(name: String) = viewModelScope.launch { repository.createList(name) }
+
+    fun deleteList(name: String) = viewModelScope.launch {
+        if (_selectedList.value == name) _selectedList.value = null
+        repository.deleteList(name)
+    }
+
+    fun assignList(callsign: String, listName: String?) = viewModelScope.launch {
+        repository.setFavoriteList(callsign, listName)
+    }
 
     fun updateNote(callsign: String, note: String?) = viewModelScope.launch {
         repository.updateFavoriteNote(callsign, note)
