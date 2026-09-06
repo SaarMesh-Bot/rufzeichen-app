@@ -63,4 +63,17 @@ interface CallsignDao {
 
     @Query("SELECT * FROM cache WHERE callsign = :callsign LIMIT 1")
     suspend fun getCached(callsign: String): CachedCallsignEntity?
+
+    // ---- Logbook (QSOs) ----
+    @Query("SELECT * FROM qso ORDER BY dateYmd DESC, timeHm DESC, id DESC")
+    fun observeQsos(): Flow<List<QsoEntity>>
+
+    @Query("SELECT * FROM qso ORDER BY dateYmd DESC, timeHm DESC, id DESC")
+    suspend fun allQsos(): List<QsoEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addQso(qso: QsoEntity): Long
+
+    @Query("DELETE FROM qso WHERE id = :id")
+    suspend fun deleteQso(id: Long)
 }

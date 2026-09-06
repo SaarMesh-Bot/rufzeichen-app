@@ -2,7 +2,7 @@ package de.hamlookup.rufzeichen.ui.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -30,7 +30,8 @@ import de.hamlookup.rufzeichen.ui.Loc
 import de.hamlookup.rufzeichen.ui.FavoritesViewModel
 import de.hamlookup.rufzeichen.ui.SearchViewModel
 import de.hamlookup.rufzeichen.ui.SettingsViewModel
-import de.hamlookup.rufzeichen.ui.bands.BandPlanScreen
+import de.hamlookup.rufzeichen.ui.ToolsViewModel
+import de.hamlookup.rufzeichen.ui.tools.ToolsScreen
 import de.hamlookup.rufzeichen.ui.detail.CallsignDetailContent
 import de.hamlookup.rufzeichen.ui.favorites.FavoritesScreen
 import de.hamlookup.rufzeichen.ui.favorites.SettingsScreen
@@ -39,7 +40,7 @@ import de.hamlookup.rufzeichen.ui.search.SearchScreen
 private enum class Tab(val icon: ImageVector) {
     Search(Icons.Filled.Search),
     Favorites(Icons.Filled.Star),
-    Bands(Icons.Filled.Info),
+    Tools(Icons.Filled.Build),
     Settings(Icons.Filled.Settings)
 }
 
@@ -49,6 +50,7 @@ fun MainScreen(factory: AppViewModelFactory) {
     val searchVm: SearchViewModel = viewModel(factory = factory)
     val favVm: FavoritesViewModel = viewModel(factory = factory)
     val settingsVm: SettingsViewModel = viewModel(factory = factory)
+    val toolsVm: ToolsViewModel = viewModel(factory = factory)
     val settings by settingsVm.settings.collectAsStateWithLifecycle()
 
     var tab by remember { mutableStateOf(Tab.Search) }
@@ -65,7 +67,7 @@ fun MainScreen(factory: AppViewModelFactory) {
                     val lbl = when (t) {
                         Tab.Search -> Loc.tabSearch
                         Tab.Favorites -> Loc.tabFavorites
-                        Tab.Bands -> Loc.tabBands
+                        Tab.Tools -> Loc.tabTools
                         Tab.Settings -> Loc.tabSettings
                     }
                     NavigationBarItem(
@@ -82,7 +84,7 @@ fun MainScreen(factory: AppViewModelFactory) {
             when (tab) {
                 Tab.Search -> SearchScreen(searchVm, onOpenDetail = { detail = it })
                 Tab.Favorites -> FavoritesScreen(favVm, onOpenDetail = { detail = it })
-                Tab.Bands -> BandPlanScreen()
+                Tab.Tools -> ToolsScreen(toolsVm)
                 Tab.Settings -> SettingsScreen(settingsVm)
             }
         }

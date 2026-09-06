@@ -20,6 +20,7 @@ object Loc {
     val tabFavorites get() = s("Favoriten", "Favorites")
     val tabSettings get() = s("Einstellungen", "Settings")
     val tabBands get() = s("Bänder", "Bands")
+    val tabTools get() = s("Werkzeuge", "Tools")
     val amateurRadio get() = s("Amateurfunk", "Amateur Radio")
 
     // ---- search --------------------------------------------------------------
@@ -264,4 +265,64 @@ object Loc {
         "Für die Entfernungssortierung im Reiter „Einstellungen\" deinen Standort setzen.",
         "Set your location in the Settings tab to sort favorites by distance."
     )
+
+    // ---- tools hub ----------------------------------------------------------
+    val toolsTitle get() = s("Werkzeuge", "Tools")
+    val toolBack get() = s("Zurück", "Back")
+    val toolCalc get() = s("Rechner", "Calculators")
+    val toolCalcSub get() = s("Antenne, Leistung, EIRP/ERP, Koax", "Antenna, power, EIRP/ERP, coax")
+    val toolRef get() = s("Referenz", "Reference")
+    val toolRefSub get() = s("Q-Codes, RST, NATO-Alphabet", "Q-codes, RST, NATO alphabet")
+    val toolBandsSub get() = s("Bandpläne & Rechte nach Klasse", "Band plans & privileges by class")
+    val toolLog get() = s("Logbuch", "Logbook")
+    val toolLogSub get() = s("QSOs erfassen und als ADIF exportieren", "Log QSOs and export as ADIF")
+
+    // ---- calculators --------------------------------------------------------
+    val calcFreqMhz get() = s("Frequenz (MHz)", "Frequency (MHz)")
+    val calcAntenna get() = s("Antennenlänge", "Antenna length")
+    val calcDipole get() = s("Halbwellen-Dipol (λ/2)", "Half-wave dipole (λ/2)")
+    val calcVertical get() = s("Viertelwelle (λ/4)", "Quarter-wave (λ/4)")
+    val calcLoop get() = s("Ganzwellen-Schleife", "Full-wave loop")
+    val calcWavelength get() = s("Wellenlänge", "Wavelength")
+    val calcPower get() = s("Leistung: dBm ↔ Watt", "Power: dBm ↔ watts")
+    val calcWatt get() = s("Watt", "Watts")
+    val calcEirp get() = s("EIRP / ERP", "EIRP / ERP")
+    val calcTxPower get() = s("Sendeleistung (W)", "TX power (W)")
+    val calcCableLoss get() = s("Kabeldämpfung (dB)", "Cable loss (dB)")
+    val calcGain get() = s("Antennengewinn (dBi)", "Antenna gain (dBi)")
+    val calcErp get() = s("ERP (bezogen auf Dipol)", "ERP (over dipole)")
+    val calcCoax get() = s("Koax-Dämpfung", "Coax attenuation")
+    val calcCable get() = s("Kabel", "Cable")
+    val calcLengthM get() = s("Länge (m)", "Length (m)")
+    val calcLoss get() = s("Dämpfung", "Loss")
+    val calcRemaining get() = s("Leistung am Antennenfuß", "Power at the antenna")
+    val calcGuideline get() = s("Richtwerte – ohne Gewähr.", "Guideline values – no guarantee.")
+    val calcHintN get() = s(
+        "Klasse N: max. 10 W ERP auf 10 m, 6,1 W ERP auf 2 m/70 cm.",
+        "Class N: max 10 W ERP on 10 m, 6.1 W ERP on 2 m/70 cm."
+    )
+
+    // ---- reference ----------------------------------------------------------
+    val refQ get() = s("Q-Codes", "Q-codes")
+    val refRst get() = s("RST-System", "RST system")
+    val refNato get() = s("NATO-Alphabet", "NATO alphabet")
+
+    // ---- logbook ------------------------------------------------------------
+    val logEmpty get() = s("Noch keine QSOs. Tippe auf +, um einen Eintrag anzulegen.", "No QSOs yet. Tap + to add one.")
+    val logAdd get() = s("QSO hinzufügen", "Add QSO")
+    val logExport get() = s("ADIF exportieren", "Export ADIF")
+    val logCallsign get() = s("Rufzeichen", "Call sign")
+    val logDate get() = s("Datum (JJJJMMTT)", "Date (YYYYMMDD)")
+    val logTime get() = s("Zeit UTC (HHMM)", "Time UTC (HHMM)")
+    val logBand get() = s("Band", "Band")
+    val logMode get() = s("Betriebsart", "Mode")
+    val logRstSent get() = s("RST gesendet", "RST sent")
+    val logRstRcvd get() = s("RST empfangen", "RST rcvd")
+    val logName get() = s("Name", "Name")
+    val logGrid get() = s("Locator", "Locator")
+    val logComment get() = s("Bemerkung", "Comment")
+    val logDeleteTitle get() = s("QSO löschen", "Delete QSO")
+    val logDeleteMsg get() = s("Diesen Logbuch-Eintrag löschen?", "Delete this logbook entry?")
+    val logExportEmpty get() = s("Keine QSOs zum Exportieren.", "No QSOs to export.")
+    val logShareTitle get() = s("Logbuch (ADIF)", "Logbook (ADIF)")
 }

@@ -3,7 +3,9 @@ package de.hamlookup.rufzeichen.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import de.hamlookup.rufzeichen.data.local.QsoEntity
 import de.hamlookup.rufzeichen.data.model.Callsign
+import de.hamlookup.rufzeichen.data.tools.Adif
 import de.hamlookup.rufzeichen.data.repository.CallsignRepository
 import de.hamlookup.rufzeichen.data.repository.FavoriteItem
 import de.hamlookup.rufzeichen.data.repository.SearchOutcome
@@ -166,6 +168,23 @@ class SettingsViewModel(
     }
 }
 
+class ToolsViewModel(
+    private val repository: CallsignRepository
+) : ViewModel() {
+    val qsos: StateFlow<List<QsoEntity>> = repository.qsos.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
+    )
+
+    fun addQso(qso: QsoEntity) = viewModelScope.launch { repository.addQso(qso) }
+
+    fun deleteQso(id: Long) = viewModelScope.launch { repository.deleteQso(id) }
+
+    /** Builds the ADIF document off the DB and hands it back on the main scope. */
+    fun exportAdif(onReady: (String) -> Unit) = viewModelScope.launch {
+        onReady(Adif.export(repository.allQsos()))
+    }
+}
+
 /** Factory that wires ViewModels to the shared repositories. */
 class AppViewModelFactory(
     private val callsignRepository: CallsignRepository,
@@ -179,6 +198,8 @@ class AppViewModelFactory(
             FavoritesViewModel(callsignRepository, settingsRepository) as T
         modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
             SettingsViewModel(settingsRepository) as T
+        modelClass.isAssignableFrom(ToolsViewModel::class.java) ->
+            ToolsViewModel(callsignRepository) as T
         else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
     }
 }

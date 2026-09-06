@@ -9,6 +9,7 @@ import de.hamlookup.rufzeichen.data.local.CallsignDao
 import de.hamlookup.rufzeichen.data.local.FavoriteEntity
 import de.hamlookup.rufzeichen.data.local.FavoriteListEntity
 import de.hamlookup.rufzeichen.data.local.HistoryEntity
+import de.hamlookup.rufzeichen.data.local.QsoEntity
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.data.model.DataSourceType
 import de.hamlookup.rufzeichen.data.remote.BackendDataSource
@@ -57,6 +58,12 @@ class CallsignRepository(
         dao.observeLists().map { list -> list.map { it.name } }
 
     val history: Flow<List<HistoryEntity>> = dao.observeHistory()
+
+    // ---- Logbook ----
+    val qsos: Flow<List<QsoEntity>> = dao.observeQsos()
+    suspend fun addQso(qso: QsoEntity): Long = dao.addQso(qso)
+    suspend fun deleteQso(id: Long) = dao.deleteQso(id)
+    suspend fun allQsos(): List<QsoEntity> = dao.allQsos()
 
     fun isFavorite(callsign: String): Flow<Boolean> = dao.isFavorite(callsign.uppercase())
 

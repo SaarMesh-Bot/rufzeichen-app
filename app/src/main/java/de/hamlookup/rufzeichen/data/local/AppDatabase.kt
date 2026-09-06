@@ -8,8 +8,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [FavoriteEntity::class, FavoriteListEntity::class, HistoryEntity::class, CachedCallsignEntity::class],
-    version = 3,
+    entities = [FavoriteEntity::class, FavoriteListEntity::class, HistoryEntity::class, CachedCallsignEntity::class, QsoEntity::class],
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -35,13 +35,24 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS qso (" +
+                        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                        "callsign TEXT NOT NULL, dateYmd TEXT NOT NULL, timeHm TEXT NOT NULL, " +
+                        "band TEXT, mode TEXT, rstSent TEXT, rstRcvd TEXT, name TEXT, grid TEXT, " +
+                        "comment TEXT, createdAt INTEGER NOT NULL)")
+            }
+        }
+
         fun get(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "rufzeichen.db"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).fallbackToDestructiveMigration().build().also { INSTANCE = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).fallbackToDestructiveMigration().build().also { INSTANCE = it }
             }
     }
 }

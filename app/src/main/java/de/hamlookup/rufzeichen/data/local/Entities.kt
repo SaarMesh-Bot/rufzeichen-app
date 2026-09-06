@@ -51,3 +51,21 @@ data class CachedCallsignEntity(
     val sourcesCsv: String,
     val cachedAt: Long = System.currentTimeMillis()
 )
+
+
+/** A logged QSO (contact) for the on-device mini logbook. */
+@Entity(tableName = "qso")
+data class QsoEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val callsign: String,
+    val dateYmd: String,      // YYYYMMDD
+    val timeHm: String,       // HHMM (UTC)
+    val band: String?,
+    val mode: String?,
+    val rstSent: String?,
+    val rstRcvd: String?,
+    val name: String?,
+    val grid: String?,
+    val comment: String?,
+    val createdAt: Long = System.currentTimeMillis()
+)
