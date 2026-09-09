@@ -92,6 +92,10 @@ class BackendDataSource(
         val official = env.optBoolean("official_checked", false) ||
             r.optStringOrNull("source_type") == "official"
 
+        val related = r.optJSONArray("related")?.let { arr ->
+            (0 until arr.length()).map { arr.optString(it) }.filter { it.isNotBlank() }
+        } ?: emptyList()
+
         return Callsign(
             callsign = r.optString("callsign", env.optString("callsign")),
             holderName = r.optStringOrNull("name"),
@@ -106,7 +110,8 @@ class BackendDataSource(
             sourceName = r.optStringOrNull("source") ?: env.optStringOrNull("source"),
             official = official,
             extra = extra,
-            sources = setOf(DataSourceType.BACKEND)
+            sources = setOf(DataSourceType.BACKEND),
+            related = related
         )
     }
 }

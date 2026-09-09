@@ -35,7 +35,8 @@ data class Callsign(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val sourceName: String? = null,       // e.g. "BNetzA", "Callook", "QRZ.com"
-    val official: Boolean? = null         // true = official authority, false = community
+    val official: Boolean? = null,        // true = official authority, false = community
+    val related: List<String> = emptyList() // other call signs of the same holder
 )
 
 /** Purely offline-derived facts about a call sign. */

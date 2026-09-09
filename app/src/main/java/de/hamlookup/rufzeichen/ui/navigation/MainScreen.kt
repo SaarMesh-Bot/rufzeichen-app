@@ -111,7 +111,8 @@ fun MainScreen(factory: AppViewModelFactory) {
                 currentList = currentList,
                 onToggleFavorite = { makeFav -> searchVm.setFavorite(selected, makeFav) },
                 onAssignList = { listName -> searchVm.assignFavoriteList(selected.callsign, listName) },
-                onCreateList = { name -> searchVm.createList(name) }
+                onCreateList = { name -> searchVm.createList(name) },
+                onOpenRelated = { rc -> searchVm.openCallsign(rc) { detail = it } }
             )
         }
     }

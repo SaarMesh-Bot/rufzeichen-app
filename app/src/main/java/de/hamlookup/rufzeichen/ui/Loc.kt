@@ -198,6 +198,11 @@ object Loc {
     val apply get() = s("Übernehmen", "Apply")
 
     // ---- messages (repository / viewmodel) -----------------------------------
+    val sectionRelated get() = s("Weitere Rufzeichen dieser Person", "Other call signs of this holder")
+    val relatedHint get() = s(
+        "Gleicher Name und dieselbe Anschrift laut Amt.",
+        "Same name and address according to the authority."
+    )
     val unknownError get() = s("Unbekannter Fehler", "Unknown error")
     val offlineResults get() = s(
         "Offline – Ergebnisse aus lokalem Cache und Analyse.",

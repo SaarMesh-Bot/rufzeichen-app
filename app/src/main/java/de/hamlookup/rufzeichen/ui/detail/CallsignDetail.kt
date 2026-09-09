@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
@@ -63,7 +64,8 @@ fun CallsignDetailContent(
     currentList: String? = null,
     onToggleFavorite: (Boolean) -> Unit,
     onAssignList: (String?) -> Unit = {},
-    onCreateList: (String) -> Unit = {}
+    onCreateList: (String) -> Unit = {},
+    onOpenRelated: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     Column(
@@ -164,6 +166,25 @@ fun CallsignDetailContent(
             val shown = setOf("Name", "Inhaber", "Klasse", "Ort", "QTH", "Standort", "Land")
             callsign.extra.forEach { (k, v) ->
                 if (shown.none { k.contains(it, true) }) DetailRow(k, v)
+            }
+
+            if (callsign.related.isNotEmpty()) {
+                Spacer(Modifier.height(10.dp))
+                SectionTitle(Loc.sectionRelated)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    callsign.related.forEach { rc ->
+                        AssistChip(
+                            onClick = { onOpenRelated(rc) },
+                            label = { Text(rc, fontFamily = FontFamily.Monospace) }
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    Loc.relatedHint,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             // Interactive OpenStreetMap view of the location, from explicit

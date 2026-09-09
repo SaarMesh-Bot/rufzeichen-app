@@ -86,6 +86,13 @@ class SearchViewModel(
     fun setFavorite(callsign: Callsign, favorite: Boolean) = viewModelScope.launch {
         repository.toggleFavorite(callsign, favorite)
     }
+
+    /** Look up a call sign (e.g. a related one) and hand back the first result. */
+    fun openCallsign(call: String, onResult: (Callsign) -> Unit) = viewModelScope.launch {
+        try {
+            repository.search(call).results.firstOrNull()?.let(onResult)
+        } catch (_: Exception) { }
+    }
 }
 
 enum class FavSort { ADDED, DISTANCE }
