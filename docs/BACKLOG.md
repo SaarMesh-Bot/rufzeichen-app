@@ -19,3 +19,22 @@ Vorgemerkt, aber noch nicht umgesetzt.
       Kompass-Ausrichtung zum Ziel-Locator per Gerätesensor.
 - [ ] Relaissuche „in der Nähe" (DE-Repeaterliste, Import wie die Länderregister, nach Entfernung/Band).
 - [ ] Satelliten-Überflüge (TLE/SGP4) – aufwändigster Brocken.
+
+## Suche / Detailansicht
+
+- [ ] **Weitere Rufzeichen derselben Person anzeigen.** Wenn ein Rufzeichen mit Halterdaten
+      gefunden wurde, in der Detailansicht einen Abschnitt „Weitere Rufzeichen dieser Person"
+      zeigen und die zugehörigen Calls verlinken (antippbar → Detailansicht).
+      Beispiel: DK6IEC (Andreas Bender) hält auch DN6IEC (Ausbildungsrufzeichen).
+      Notiert: 2026-09-09.
+
+      Machbarkeit / Umsetzung:
+      - Umkehrsuche über den **Halternamen** (name → Liste der Calls, aktuellen Call ausschließen).
+        Direkt machbar für Länder mit lokalem Volldatensatz inkl. Name: **HU, NO, RO, PL** (Klub) –
+        je Provider eine Methode `byHolder(name)` bzw. Backend-Endpoint `/callsign/by-holder`.
+      - **Deutschland (BNetzA):** wird aktuell nur pro Call live abgefragt, kein Bulk-Halterdatensatz
+        auf dem Server. Für DE zuerst prüfen, ob die BNetzA eine herunterladbare Gesamtliste anbietet;
+        sonst ist eine Namens-Umkehrsuche für DE nicht ohne Weiteres möglich.
+      - **Datenschutz/Genauigkeit:** Namensgleichheit ist nicht eindeutig (verschiedene Personen,
+        gleicher Name). Nur bei exakter Namensübereinstimmung gruppieren und als „mögliche" weitere
+        Rufzeichen kennzeichnen; keine Zusammenführung über Länder hinweg.
