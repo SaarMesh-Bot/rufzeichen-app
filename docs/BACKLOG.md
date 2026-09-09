@@ -28,13 +28,25 @@ Vorgemerkt, aber noch nicht umgesetzt.
       Beispiel: DK6IEC (Andreas Bender) hält auch DN6IEC (Ausbildungsrufzeichen).
       Notiert: 2026-09-09.
 
+      Zuordnungsregel (Wunsch): Gleichheit **nur bei Name UND Anschrift** festlegen (nicht Name allein),
+      um Verwechslungen bei Namensgleichheit auszuschließen.
+
       Machbarkeit / Umsetzung:
-      - Umkehrsuche über den **Halternamen** (name → Liste der Calls, aktuellen Call ausschließen).
-        Direkt machbar für Länder mit lokalem Volldatensatz inkl. Name: **HU, NO, RO, PL** (Klub) –
-        je Provider eine Methode `byHolder(name)` bzw. Backend-Endpoint `/callsign/by-holder`.
-      - **Deutschland (BNetzA):** wird aktuell nur pro Call live abgefragt, kein Bulk-Halterdatensatz
-        auf dem Server. Für DE zuerst prüfen, ob die BNetzA eine herunterladbare Gesamtliste anbietet;
-        sonst ist eine Namens-Umkehrsuche für DE nicht ohne Weiteres möglich.
-      - **Datenschutz/Genauigkeit:** Namensgleichheit ist nicht eindeutig (verschiedene Personen,
-        gleicher Name). Nur bei exakter Namensübereinstimmung gruppieren und als „mögliche" weitere
-        Rufzeichen kennzeichnen; keine Zusammenführung über Länder hinweg.
+      - Umkehrsuche über **Name + Anschrift** (→ Liste der Calls, aktuellen Call ausschließen).
+        Direkt machbar für Länder mit lokalem Volldatensatz inkl. Name/Ort: **HU, NO, RO, PL** (Klub).
+      - **Deutschland (BNetzA): Quelle gefunden.** Die BNetzA veröffentlicht die vollständige
+        „Rufzeichenliste" als PDF (öffentlich, gemeinfrei nach § 5 UrhG):
+        https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/DE/Sachgebiete/Telekommunikation/Unternehmen_Institutionen/Frequenzen/Amateurfunk/Rufzeichenliste/rufzeichenliste_afu.pdf
+        Stand geprüft 2026-09-09: ~9,6 MB, 684 Seiten, datiert 26.08.2026 (wird periodisch aktualisiert).
+        Zeilenformat je Eintrag: `RUFZEICHEN , KLASSE, Name[; Straße Nr, PLZ Ort]`
+        Beispiel: `DA1AA , A, Norman Czora; Leipziger Str. 212, 38124 Braunschweig`.
+        Hinweise: Zeilen brechen im PDF um (beim Parsen zusammenfügen, bis zum nächsten Call-Muster);
+        Anschrift ist optional (nicht alle Halter geben sie frei) → dann kann kein DE-Match über Adresse
+        erfolgen; mehrere Abschnitte (personengebundene Rufzeichen, Klubstationen, Ausbildungscalls DN…).
+      - Umsetzungsidee DE: PDF serverseitig parsen (pypdf/pdftotext) und `de_afu.sqlite`
+        (callsign, class, name, address) bauen (wöchentlicher Timer wie die anderen Länder).
+        Das ermöglicht (a) die Personen-Verknüpfung über exakt gleiche (Name+Anschrift) und
+        optional (b) einen schnelleren/robusteren DE-Provider als Ergänzung zur Live-BNetzA-Abfrage.
+      - **Datenschutz/Genauigkeit:** nur bei exakter Übereinstimmung von Name **und** normalisierter
+        Anschrift gruppieren; als „mögliche weitere Rufzeichen" kennzeichnen; keine länderübergreifende
+        Zusammenführung; nur ohnehin amtlich veröffentlichte Daten verwenden.
