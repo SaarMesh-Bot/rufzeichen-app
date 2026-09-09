@@ -45,6 +45,17 @@ class SearchViewModel(
         .map { list -> list.map { it.callsign } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val favoriteLists = repository.favoriteLists
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun favoriteListOf(callsign: String) = repository.favoriteListOf(callsign)
+
+    fun assignFavoriteList(callsign: String, listName: String?) = viewModelScope.launch {
+        repository.setFavoriteList(callsign, listName)
+    }
+
+    fun createList(name: String) = viewModelScope.launch { repository.createList(name) }
+
     fun onQueryChange(q: String) {
         _state.value = _state.value.copy(query = q)
     }

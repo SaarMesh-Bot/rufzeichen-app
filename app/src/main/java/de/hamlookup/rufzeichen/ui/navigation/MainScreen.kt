@@ -93,6 +93,9 @@ fun MainScreen(factory: AppViewModelFactory) {
     detail?.let { selected ->
         val isFav by searchVm.isFavorite(selected.callsign)
             .collectAsStateWithLifecycle(initialValue = false)
+        val favLists by searchVm.favoriteLists.collectAsStateWithLifecycle()
+        val currentList by searchVm.favoriteListOf(selected.callsign)
+            .collectAsStateWithLifecycle(initialValue = null)
         ModalBottomSheet(
             onDismissRequest = { detail = null },
             sheetState = sheetState
@@ -104,7 +107,11 @@ fun MainScreen(factory: AppViewModelFactory) {
                 ownCallsign = settings.ownCallsign.ifBlank { null },
                 ownLat = settings.ownLat,
                 ownLon = settings.ownLon,
-                onToggleFavorite = { makeFav -> searchVm.setFavorite(selected, makeFav) }
+                lists = favLists,
+                currentList = currentList,
+                onToggleFavorite = { makeFav -> searchVm.setFavorite(selected, makeFav) },
+                onAssignList = { listName -> searchVm.assignFavoriteList(selected.callsign, listName) },
+                onCreateList = { name -> searchVm.createList(name) }
             )
         }
     }

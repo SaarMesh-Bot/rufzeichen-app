@@ -41,6 +41,9 @@ interface CallsignDao {
     @Query("UPDATE favorites SET listName = :listName WHERE callsign = :callsign")
     suspend fun updateFavoriteList(callsign: String, listName: String?)
 
+    @Query("SELECT listName FROM favorites WHERE callsign = :callsign LIMIT 1")
+    fun observeFavoriteList(callsign: String): Flow<String?>
+
     // ---- History ----
     @Query("SELECT * FROM history ORDER BY searchedAt DESC LIMIT 50")
     fun observeHistory(): Flow<List<HistoryEntity>>

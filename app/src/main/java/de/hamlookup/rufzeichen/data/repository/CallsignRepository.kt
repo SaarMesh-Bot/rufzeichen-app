@@ -57,6 +57,9 @@ class CallsignRepository(
     val favoriteLists: Flow<List<String>> =
         dao.observeLists().map { list -> list.map { it.name } }
 
+    fun favoriteListOf(callsign: String): Flow<String?> =
+        dao.observeFavoriteList(callsign.uppercase())
+
     val history: Flow<List<HistoryEntity>> = dao.observeHistory()
 
     // ---- Logbook ----

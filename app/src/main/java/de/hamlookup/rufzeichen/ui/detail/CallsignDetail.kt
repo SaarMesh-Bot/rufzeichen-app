@@ -22,12 +22,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -51,7 +59,11 @@ fun CallsignDetailContent(
     ownCallsign: String? = null,
     ownLat: Double? = null,
     ownLon: Double? = null,
-    onToggleFavorite: (Boolean) -> Unit
+    lists: List<String> = emptyList(),
+    currentList: String? = null,
+    onToggleFavorite: (Boolean) -> Unit,
+    onAssignList: (String?) -> Unit = {},
+    onCreateList: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     Column(
@@ -88,6 +100,11 @@ fun CallsignDetailContent(
                     else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                 )
             }
+        }
+
+        if (isFavorite) {
+            Spacer(Modifier.height(6.dp))
+            ListAssignmentRow(lists, currentList, onAssignList, onCreateList)
         }
 
         // Provenance: an explicit official vs. community badge when we know the
@@ -249,6 +266,60 @@ fun CallsignDetailContent(
                         modifier = Modifier.padding(vertical = 2.dp)
                     )
                 }
+            }
+        }
+    }
+}
+
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun ListAssignmentRow(
+    lists: List<String>,
+    current: String?,
+    onAssign: (String?) -> Unit,
+    onCreate: (String) -> Unit
+) {
+    var creating by remember { mutableStateOf(false) }
+    var newName by remember { mutableStateOf("") }
+    Column {
+        Text(
+            Loc.favListLabel,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(4.dp))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = current == null,
+                onClick = { onAssign(null) },
+                label = { Text(Loc.favNoList) }
+            )
+            lists.forEach { n ->
+                FilterChip(
+                    selected = current == n,
+                    onClick = { onAssign(n) },
+                    label = { Text(n) }
+                )
+            }
+            AssistChip(onClick = { creating = !creating }, label = { Text(Loc.favNewListShort) })
+        }
+        if (creating) {
+            Spacer(Modifier.height(6.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = newName,
+                    onValueChange = { newName = it },
+                    placeholder = { Text(Loc.favListNameHint) },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(
+                    enabled = newName.trim().isNotEmpty(),
+                    onClick = {
+                        val n = newName.trim()
+                        onCreate(n); onAssign(n); newName = ""; creating = false
+                    }
+                ) { Text(Loc.favCreate) }
             }
         }
     }
