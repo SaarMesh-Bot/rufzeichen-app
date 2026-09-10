@@ -50,3 +50,13 @@ Vorgemerkt, aber noch nicht umgesetzt.
       - **Datenschutz/Genauigkeit:** nur bei exakter Übereinstimmung von Name **und** normalisierter
         Anschrift gruppieren; als „mögliche weitere Rufzeichen" kennzeichnen; keine länderübergreifende
         Zusammenführung; nur ohnehin amtlich veröffentlichte Daten verwenden.
+
+## Unterstützung / Spenden
+
+- Ko-fi: https://ko-fi.com/saarmesh — externe Unterstützen-Seite unter
+  docs/unterstuetzen.html (GitHub Pages). **Bewusst NICHT in der App und NICHT auf der
+  aus der App verlinkten Datenschutzseite** (Google-Play-Anti-Steering; vgl. AnkiDroid-Fall).
+  Nur extern teilen (QRZ, Social Media, eigene Website).
+- [ ] Optional später: freiwillige „Unterstützer-Version" über Google Play Billing
+  (kleiner Trinkgeld-Kauf + kosmetisches „Unterstützer"-Badge im Über-Bereich). Richtlinien-
+  konform, aber Play-Billing-Integration + Produkte in der Play Console nötig.
