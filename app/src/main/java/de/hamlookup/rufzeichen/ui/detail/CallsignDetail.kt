@@ -23,8 +23,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
@@ -65,7 +67,8 @@ fun CallsignDetailContent(
     onToggleFavorite: (Boolean) -> Unit,
     onAssignList: (String?) -> Unit = {},
     onCreateList: (String) -> Unit = {},
-    onOpenRelated: (String) -> Unit = {}
+    onOpenRelated: (String) -> Unit = {},
+    onLogQso: () -> Unit = {}
 ) {
     val context = LocalContext.current
     Column(
@@ -121,6 +124,11 @@ fun CallsignDetailContent(
         }
 
         Spacer(Modifier.height(12.dp))
+
+        FilledTonalButton(onClick = onLogQso, modifier = Modifier.fillMaxWidth()) {
+            Text(Loc.logQsoFromDetail)
+        }
+        Spacer(Modifier.height(4.dp))
 
         // Relation to the user's own QTH (shared by the map line and the
         // distance section). "Own station" if the call matches the stored own

@@ -315,6 +315,8 @@ object Loc {
     // ---- logbook ------------------------------------------------------------
     val logEmpty get() = s("Noch keine QSOs. Tippe auf +, um einen Eintrag anzulegen.", "No QSOs yet. Tap + to add one.")
     val logAdd get() = s("QSO hinzufügen", "Add QSO")
+    val logQsoFromDetail get() = s("QSO anlegen", "Log QSO")
+    val logSaved get() = s("Im Logbuch gespeichert", "Saved to logbook")
     val logExport get() = s("ADIF exportieren", "Export ADIF")
     val logCallsign get() = s("Rufzeichen", "Call sign")
     val logDate get() = s("Datum (JJJJMMTT)", "Date (YYYYMMDD)")

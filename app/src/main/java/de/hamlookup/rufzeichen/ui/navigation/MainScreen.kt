@@ -31,6 +31,10 @@ import de.hamlookup.rufzeichen.ui.FavoritesViewModel
 import de.hamlookup.rufzeichen.ui.SearchViewModel
 import de.hamlookup.rufzeichen.ui.SettingsViewModel
 import de.hamlookup.rufzeichen.ui.ToolsViewModel
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import de.hamlookup.rufzeichen.data.local.QsoEntity
+import de.hamlookup.rufzeichen.ui.tools.QsoEntryDialog
 import de.hamlookup.rufzeichen.ui.tools.ToolsScreen
 import de.hamlookup.rufzeichen.ui.detail.CallsignDetailContent
 import de.hamlookup.rufzeichen.ui.favorites.FavoritesScreen
@@ -55,6 +59,8 @@ fun MainScreen(factory: AppViewModelFactory) {
 
     var tab by remember { mutableStateOf(Tab.Search) }
     var detail by remember { mutableStateOf<Callsign?>(null) }
+    var qsoFor by remember { mutableStateOf<Callsign?>(null) }
+    val ctx = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     Scaffold(
@@ -112,8 +118,24 @@ fun MainScreen(factory: AppViewModelFactory) {
                 onToggleFavorite = { makeFav -> searchVm.setFavorite(selected, makeFav) },
                 onAssignList = { listName -> searchVm.assignFavoriteList(selected.callsign, listName) },
                 onCreateList = { name -> searchVm.createList(name) },
-                onOpenRelated = { rc -> searchVm.openCallsign(rc) { detail = it } }
+                onOpenRelated = { rc -> searchVm.openCallsign(rc) { detail = it } },
+                onLogQso = { qsoFor = selected }
             )
         }
     }
+
+    qsoFor?.let { c ->
+        QsoEntryDialog(
+            prefillCall = c.callsign,
+            prefillName = c.holderName ?: "",
+            prefillGrid = c.locator ?: "",
+            onDismiss = { qsoFor = null },
+            onSave = {
+                toolsVm.addQso(it)
+                qsoFor = null
+                Toast.makeText(ctx, Loc.logSaved, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
 }

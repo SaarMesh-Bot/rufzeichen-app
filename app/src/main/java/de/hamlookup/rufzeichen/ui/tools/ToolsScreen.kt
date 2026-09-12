@@ -342,7 +342,7 @@ private fun LogbookScreen(viewModel: ToolsViewModel) {
     }
 
     if (adding) {
-        QsoDialog(onDismiss = { adding = false }, onSave = { viewModel.addQso(it); adding = false })
+        QsoEntryDialog(onDismiss = { adding = false }, onSave = { viewModel.addQso(it); adding = false })
     }
     deleting?.let { q ->
         AlertDialog(
@@ -382,20 +382,26 @@ private fun QsoRow(q: QsoEntity, onDelete: () -> Unit) {
 }
 
 @Composable
-private fun QsoDialog(onDismiss: () -> Unit, onSave: (QsoEntity) -> Unit) {
+internal fun QsoEntryDialog(
+    prefillCall: String = "",
+    prefillName: String = "",
+    prefillGrid: String = "",
+    onDismiss: () -> Unit,
+    onSave: (QsoEntity) -> Unit
+) {
     val utc = TimeZone.getTimeZone("UTC")
     val today = remember { SimpleDateFormat("yyyyMMdd", Locale.US).apply { timeZone = utc }.format(Date()) }
     val nowHm = remember { SimpleDateFormat("HHmm", Locale.US).apply { timeZone = utc }.format(Date()) }
 
-    var call by remember { mutableStateOf("") }
+    var call by remember { mutableStateOf(prefillCall.uppercase()) }
     var date by remember { mutableStateOf(today) }
     var time by remember { mutableStateOf(nowHm) }
     var band by remember { mutableStateOf("") }
     var mode by remember { mutableStateOf("SSB") }
     var rs by remember { mutableStateOf("59") }
     var rr by remember { mutableStateOf("59") }
-    var name by remember { mutableStateOf("") }
-    var grid by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(prefillName) }
+    var grid by remember { mutableStateOf(prefillGrid) }
     var comment by remember { mutableStateOf("") }
 
     AlertDialog(
