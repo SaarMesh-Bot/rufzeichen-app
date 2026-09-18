@@ -157,13 +157,21 @@ object Loc {
         "Direct lookup at the German regulator (BNetzA) from the device – also for the " +
             "wildcard search (e.g. db2*k) and as a fallback without the server."
     )
-    val toggleHamqthTitle get() = s("HamQTH (Gerät, international)", "HamQTH (device, international)")
+    val toggleHamqthTitle get() = s("HamQTH (Gerät, international) – optional", "HamQTH (device, international) – optional")
     val toggleHamqthSub get() = s(
-        "Weltweite Community-Datenbank direkt vom Gerät. Kostenloses Konto erforderlich.",
-        "Worldwide community database directly from the device. A free account is required."
+        "Optionale weltweite Community-Datenbank. Nur wenn du dies aktivierst, ist ein " +
+            "kostenloses HamQTH-Konto nötig. Die App funktioniert vollständig ohne Anmeldung.",
+        "Optional worldwide community database. A free HamQTH account is only needed if you " +
+            "enable this. The app works fully without any login."
     )
-    val hamqthUser get() = s("HamQTH-Benutzername", "HamQTH username")
-    val hamqthPass get() = s("HamQTH-Passwort", "HamQTH password")
+    val hamqthOptionalHint get() = s(
+        "Optional – nur für die internationale Community-Suche. Zum Nutzen der App ist keine " +
+            "Anmeldung nötig; alle Kernfunktionen laufen ohne Konto.",
+        "Optional – only for the international community search. No login is required to use the " +
+            "app; all core features work without an account."
+    )
+    val hamqthUser get() = s("HamQTH-Benutzername (optional)", "HamQTH username (optional)")
+    val hamqthPass get() = s("HamQTH-Passwort (optional)", "HamQTH password (optional)")
     val headOffline get() = s("Offline", "Offline")
     val offlineText get() = s(
         "Die Rufzeichen-Analyse (Präfix, Land, geschätzte Klasse) funktioniert immer offline. " +

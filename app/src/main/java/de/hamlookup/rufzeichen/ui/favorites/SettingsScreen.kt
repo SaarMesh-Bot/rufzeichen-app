@@ -140,6 +140,12 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 
         if (settings.useHamQth) {
             Spacer(Modifier.height(8.dp))
+            Text(
+                Loc.hamqthOptionalHint,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(8.dp))
             PersistedTextField(
                 value = settings.hamQthUser,
                 onCommit = { viewModel.update(settings.copy(hamQthUser = it)) },
