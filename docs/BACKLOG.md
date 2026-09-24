@@ -1,5 +1,36 @@
 # Backlog – Ideen für kommende Versionen
 
+## Status
+
+- **2.0 = v1.14.2 (30)** – als erster Produktions-Release eingereicht (18./19.09.2026), in Prüfung.
+  Erste Einreichung (v29) wurde abgelehnt, weil der Prüfer die optionalen HamQTH-Felder als
+  Login-Wand gewertet hat → in v30 klar als optional gekennzeichnet + „Anmeldedaten: Nein" gespeichert.
+
+## Geplant für 2.1
+
+- [ ] **R8 aktivieren** (`isMinifyEnabled = true`, `isShrinkResources = true`) inkl. Keep-Regeln für
+      Room, osmdroid und JSON-Parsing. Play meldet aktuell: DEX-Optimierung „Niedrig",
+      unkomprimierte DEX-Größe 21,8 MB. Mapping-Datei wird dann automatisch mit hochgeladen.
+      **Nur mit eigener geschlossener Test-Beta vor Produktion.**
+- [ ] **Native Debug-Symbole** im Release-Build (`ndk { debugSymbolLevel = "FULL" }`) – behebt die
+      zweite Play-Warnung; risikolos.
+- [ ] **Relaissuche „in der Nähe"** – Hybrid:
+      - Standardquelle für alle: **repeatermap.de (DK3ML)** – Anfrage auf Datenzugang/API ist
+        vorbereitet, aber **noch nicht verschickt**. Import wie die Länderregister
+        (`repeaters.sqlite`, wöchentlicher Timer), Endpunkt „Relais in der Nähe" mit
+        Entfernung/Peilung, Filter nach Band/Modus, Quellenangabe „Daten: repeatermap.de (DK3ML)".
+      - Optional: **RepeaterBook Connect** – On-Device-ContentProvider
+        (`content://com.zbm2.repeaterbook.RBContentProvider/repeaters`), nur für Nutzer mit
+        installierter RepeaterBook-App + Connect-Abo. Umschalter wie bei HamQTH; Daten verlassen
+        das Gerät nicht. Android-11+-Paketsichtbarkeit (`<queries>`) im Manifest nötig.
+      - Alternative/Zweitanfrage: DL3EL (FM-Relaisliste DL).
+- [ ] **Englischer Store-Eintrag (en-US)** nachtragen – erst nach der 2.0-Freigabe, damit die
+      laufende Prüfung nicht neu startet. Texte liegen im Store-Kit.
+
+## Später (evtl. AGP-Upgrade)
+
+- [ ] Android Gradle Plugin 9.0 (von Play empfohlen, bringt weitere R8-Optimierungen) – eigener Schritt.
+
 ## Erledigt
 
 - [x] **Koax-Rechner: Kabel „Hyperflex 5"** – umgesetzt in v1.14.0 mit den echten
@@ -9,22 +40,16 @@
       wöchentlicher Timer), HU/NO/RO/PL aus dem lokalen Halterdatensatz. Feld `related` in der
       API-Antwort, in der Detailansicht verlinkt. Beispiel DK6IEC ↔ DN6IEC bestätigt.
 - [x] **QSO aus der Detailansicht anlegen** – umgesetzt in v1.14.1 (vorbelegtes Rufzeichen/Name/Locator).
+- [x] **HamQTH-Felder als optional gekennzeichnet** – v1.14.2 (Play-Review-Fix).
 
 ## Offen – Werkzeuge / Funktionen
 
 - [ ] Funkwetter / Ausbreitung (SFI, K/A-Index, Sonnenflecken, Grayline) über Backend-Proxy zu NOAA/HamQSL.
 - [ ] Locator- & Antennen-Tools: Locator↔Koordinaten, Entfernung/Peilung zwischen zwei beliebigen Punkten,
       Kompass-Ausrichtung zum Ziel-Locator per Gerätesensor.
-- [ ] Relaissuche „in der Nähe" (DE-Repeaterliste, Import wie die Länderregister, nach Entfernung/Band).
 - [ ] Satelliten-Überflüge (TLE/SGP4) – aufwändigster Brocken.
 - [ ] Optional: schnellerer/robusterer DE-Provider direkt aus `de_afu.sqlite` als Ergänzung zur
       Live-BNetzA-Abfrage (Datensatz liegt bereits auf dem Server).
-
-## Offen – Technik / Release
-
-- [ ] Native Debug-Symbole im Release-Build (`ndk { debugSymbolLevel = "FULL" }`) – behebt eine
-      der beiden Play-Warnungen; risikolos.
-- [ ] Optional: R8 (Verkleinern + Mapping-Datei) – nur mit Keep-Regeln und eigener Test-Beta.
 
 ## Offen – Unterstützung / Spenden
 
@@ -36,6 +61,15 @@
 
 ## Geprüft & verworfen
 
+- **Gesamtkarte aller Rufzeicheninhaber (DE)**: nicht umsetzen. BNetzA-Liste ist Opt-out (Anschrift
+  nur ohne Widerspruch), aber eine durchblätterbare Wohnort-Karte wäre eine neue Verarbeitung
+  (Zweckbindung/DSGVO) und riskant bei Google Play. Alternativen: Dichte-Heatmap pro
+  Locator-Feld oder Karte nur mit Klubstationen.
+- **OpenStreetMap als Repeater-Quelle**: Overpass-Abfrage für ganz DE (09/2026) liefert nur 4
+  Repeater-Objekte, keines mit Frequenz → unbrauchbar.
+- **RepeaterBook Export-API (HTTP)**: Genehmigung nötig; Bedingungen verbieten Caching,
+  Spiegelung und Weiterverteilung, erlauben nur private Ansicht → passt nicht zu unserem
+  Server-Import/Proxy.
 - Australien: seit 2024 Klassenlizenz → einzelne Halter nicht mehr im Register; nur Repeater/Baken
   und ~260 zugeteilte Calls. Nicht als offizielle Einzelabfrage-Quelle geeignet.
 - Neuseeland, Dänemark, Kroatien, Slowenien, Irland, Belgien, Estland, Lettland: keine
