@@ -2,6 +2,7 @@ package de.hamlookup.rufzeichen.data.remote
 
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.data.model.DataSourceType
+import de.hamlookup.rufzeichen.data.model.GermanLicenceClass
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -99,7 +100,7 @@ class BackendDataSource(
         return Callsign(
             callsign = r.optString("callsign", env.optString("callsign")),
             holderName = r.optStringOrNull("name"),
-            licenceClass = r.optStringOrNull("license_class"),
+            licenceClass = GermanLicenceClass.normalize(r.optStringOrNull("license_class")),
             qth = qth,
             country = r.optStringOrNull("country") ?: env.optStringOrNull("country"),
             countryCode = r.optStringOrNull("country_code") ?: env.optStringOrNull("country_code"),

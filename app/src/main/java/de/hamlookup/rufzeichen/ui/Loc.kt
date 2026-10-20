@@ -1,5 +1,6 @@
 package de.hamlookup.rufzeichen.ui
 
+import de.hamlookup.rufzeichen.data.model.GermanLicenceClass
 import java.util.Locale
 
 /**
@@ -230,17 +231,19 @@ object Loc {
     val bandsColBand get() = s("Band", "Band")
     val bandsColRange get() = s("Frequenz", "Frequency")
     val bandsClassSummary get() = s("Klassen im Überblick", "Classes at a glance")
-    val bandsClassN get() = s(
-        "Klasse N (Einsteiger, seit 2024): 10 m, 2 m, 70 cm – nur in Deutschland gültig.",
-        "Class N (entry, since 2024): 10 m, 2 m, 70 cm – valid in Germany only."
+    // Class names come from the central GermanLicenceClass definition so the
+    // band overview and the call sign search always use the same wording.
+    val bandsClassN get() = GermanLicenceClass.N.label + s(
+        ", seit 2024: 10 m, 2 m, 70 cm – nur in Deutschland gültig.",
+        ", since 2024: 10 m, 2 m, 70 cm – valid in Germany only."
     )
-    val bandsClassE get() = s(
-        "Klasse E: Kurzwelle (160/80/15/10 m) plus alle UKW-Bänder, bis 100 W. CEPT-Novice.",
-        "Class E: HF (160/80/15/10 m) plus all VHF/UHF bands, up to 100 W. CEPT Novice."
+    val bandsClassE get() = GermanLicenceClass.E.label + s(
+        ": Kurzwelle (160/80/15/10 m) plus alle UKW-Bänder, bis 100 W. CEPT-Novice.",
+        ": HF (160/80/15/10 m) plus all VHF/UHF bands, up to 100 W. CEPT Novice."
     )
-    val bandsClassA get() = s(
-        "Klasse A: alle Amateurbänder, bis 750 W. CEPT/HAREC (weltweit).",
-        "Class A: all amateur bands, up to 750 W. CEPT/HAREC (worldwide)."
+    val bandsClassA get() = GermanLicenceClass.A.label + s(
+        ": alle Amateurbänder, bis 750 W. CEPT/HAREC (weltweit).",
+        ": all amateur bands, up to 750 W. CEPT/HAREC (worldwide)."
     )
     val bandsDisclaimer get() = s(
         "Angaben ohne Gewähr. Maßgeblich ist der amtliche Frequenzplan des jeweiligen Landes " +
@@ -330,6 +333,12 @@ object Loc {
     val logDate get() = s("Datum (JJJJMMTT)", "Date (YYYYMMDD)")
     val logTime get() = s("Zeit UTC (HHMM)", "Time UTC (HHMM)")
     val logBand get() = s("Band", "Band")
+    val logBandNone get() = s("– kein Band –", "– no band –")
+    val logFreq get() = s("Frequenz (MHz, optional)", "Frequency (MHz, optional)")
+    val logFreqHint get() = s("z. B. 7,074 – das Band wird automatisch gesetzt", "e.g. 7.074 – the band is set automatically")
+    fun logFreqBand(band: String) = s("Band $band aus der Frequenz ermittelt", "Band $band derived from frequency")
+    val logFreqOutside get() = s("Frequenz liegt in keinem Amateurfunkband", "Frequency is outside the amateur bands")
+    val logFreqInvalid get() = s("Bitte eine Zahl in MHz eingeben", "Please enter a number in MHz")
     val logMode get() = s("Betriebsart", "Mode")
     val logRstSent get() = s("RST gesendet", "RST sent")
     val logRstRcvd get() = s("RST empfangen", "RST rcvd")

@@ -1,6 +1,7 @@
 package de.hamlookup.rufzeichen.data.analyzer
 
 import de.hamlookup.rufzeichen.data.model.CallsignAnalysis
+import de.hamlookup.rufzeichen.data.model.GermanLicenceClass
 
 /**
  * Offline call sign analysis. Splits a call sign into prefix / number / suffix,
@@ -107,12 +108,7 @@ object CallsignAnalyzer {
         "KSO" to "Klubstation (Notfunk)"
     )
 
-    private fun classLabel(c: Char): String? = when (c) {
-        'A' -> "Klasse A"
-        'E' -> "Klasse E (Einsteiger)"
-        'N' -> "Klasse N (Einsteiger)"
-        else -> null
-    }
+    private fun classLabel(c: Char): String? = GermanLicenceClass.fromCode(c)?.label
 
     /** Returns (classLabel, purposeCode) for a German Rufzeichenreihe, or null. */
     private fun germanInfo(prefix: String, number: String): Pair<String?, String>? {

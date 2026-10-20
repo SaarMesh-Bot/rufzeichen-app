@@ -67,5 +67,7 @@ data class QsoEntity(
     val name: String?,
     val grid: String?,
     val comment: String?,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    /** Optional operating frequency in MHz (ADIF FREQ). Band is derived from it when set. */
+    val freqMhz: Double? = null
 )

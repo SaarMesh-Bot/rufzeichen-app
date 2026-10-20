@@ -24,6 +24,15 @@
         installierter RepeaterBook-App + Connect-Abo. Umschalter wie bei HamQTH; Daten verlassen
         das Gerät nicht. Android-11+-Paketsichtbarkeit (`<queries>`) im Manifest nötig.
       - Alternative/Zweitanfrage: DL3EL (FM-Relaisliste DL).
+- [x] **Klassenbezeichnungen vereinheitlicht** (Nutzerhinweis DO6KAP): zentrale Definition
+      `data/model/GermanLicenceClass.kt` nach AFuV-Novelle 2024 – N = Einstiegsklasse,
+      E = mittlere Stufe, A = volle Klasse. Suche, Detail, Offline-Analyse und Bänder-Übersicht
+      nutzen sie; alte Bezeichnungen aus Cache/Favoriten werden beim Lesen umgesetzt.
+- [x] **Logbuch: Frequenzfeld** (Nutzerhinweis DO6KAP): optionales Feld „Frequenz (MHz)“,
+      Band wird daraus abgeleitet (`data/tools/AmateurBands.kt`), Band als Dropdown mit
+      ADIF-Bandnamen, ADIF-Export schreibt BAND und FREQ. DB-Version 5 (Spalte `qso.freqMhz`).
+      **Vor Release testen:** Update einer bestehenden Installation mit Logbuch-Einträgen
+      (Migration 4→5), damit keine QSOs verloren gehen.
 - [ ] **Englischer Store-Eintrag (en-US)** nachtragen – erst nach der 2.0-Freigabe, damit die
       laufende Prüfung nicht neu startet. Texte liegen im Store-Kit.
 

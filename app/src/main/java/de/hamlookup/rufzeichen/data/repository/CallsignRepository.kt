@@ -12,6 +12,7 @@ import de.hamlookup.rufzeichen.data.local.HistoryEntity
 import de.hamlookup.rufzeichen.data.local.QsoEntity
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.data.model.DataSourceType
+import de.hamlookup.rufzeichen.data.model.GermanLicenceClass
 import de.hamlookup.rufzeichen.data.remote.BackendDataSource
 import de.hamlookup.rufzeichen.ui.Loc
 import de.hamlookup.rufzeichen.data.remote.BnetzaDataSource
@@ -278,7 +279,7 @@ private fun cleanCity(v: String?): String? {
 private fun FavoriteEntity.toCallsign(): Callsign = Callsign(
     callsign = callsign,
     holderName = cleanHolderName(holderName),
-    licenceClass = licenceClass,
+    licenceClass = GermanLicenceClass.normalize(licenceClass),
     qth = cleanCity(qth),
     country = country,
     locator = locator,
@@ -300,7 +301,7 @@ private fun CachedCallsignEntity.toCallsign(): Callsign {
     return Callsign(
         callsign = callsign,
         holderName = cleanHolderName(holderName),
-        licenceClass = licenceClass,
+        licenceClass = GermanLicenceClass.normalize(licenceClass),
         qth = cleanCity(qth),
         country = country,
         extra = extra,

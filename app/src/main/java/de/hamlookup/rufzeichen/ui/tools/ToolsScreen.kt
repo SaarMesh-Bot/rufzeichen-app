@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,9 +24,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilledTonalButton
@@ -54,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.hamlookup.rufzeichen.data.local.QsoEntity
+import de.hamlookup.rufzeichen.data.tools.AmateurBands
 import de.hamlookup.rufzeichen.data.tools.CoaxData
 import de.hamlookup.rufzeichen.data.tools.RadioMath
 import de.hamlookup.rufzeichen.data.tools.Reference
@@ -363,7 +368,7 @@ private fun QsoRow(q: QsoEntity, onDelete: () -> Unit) {
                 Text(q.callsign, style = MaterialTheme.typography.titleSmall, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold)
                 val meta = listOfNotNull(
                     "${q.dateYmd} ${q.timeHm}z".trim(),
-                    q.band, q.mode
+                    q.band, q.freqMhz?.let { "${AmateurBands.formatMhz(it)} MHz" }, q.mode
                 ).joinToString(" · ")
                 Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 val rst = listOfNotNull(
@@ -396,6 +401,7 @@ internal fun QsoEntryDialog(
     var call by remember { mutableStateOf(prefillCall.uppercase()) }
     var date by remember { mutableStateOf(today) }
     var time by remember { mutableStateOf(nowHm) }
+    var freq by remember { mutableStateOf("") }
     var band by remember { mutableStateOf("") }
     var mode by remember { mutableStateOf("SSB") }
     var rs by remember { mutableStateOf("59") }
@@ -403,6 +409,11 @@ internal fun QsoEntryDialog(
     var name by remember { mutableStateOf(prefillName) }
     var grid by remember { mutableStateOf(prefillGrid) }
     var comment by remember { mutableStateOf("") }
+
+    // Frequency is optional; when it lies in an amateur band, the band follows it.
+    val freqMhz = AmateurBands.parseMhz(freq)
+    val freqInvalid = freq.isNotBlank() && freqMhz == null
+    val derivedBand = AmateurBands.bandFor(freqMhz)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -414,8 +425,30 @@ internal fun QsoEntryDialog(
                     Field(Loc.logDate, date, Modifier.weight(1f), KeyboardType.Number) { date = it }
                     Field(Loc.logTime, time, Modifier.weight(1f), KeyboardType.Number) { time = it }
                 }
+                OutlinedTextField(
+                    value = freq,
+                    onValueChange = { v ->
+                        freq = v
+                        AmateurBands.bandFor(AmateurBands.parseMhz(v))?.let { band = it }
+                    },
+                    label = { Text(Loc.logFreq) },
+                    singleLine = true,
+                    isError = freqInvalid,
+                    supportingText = {
+                        Text(
+                            when {
+                                freq.isBlank() -> Loc.logFreqHint
+                                freqInvalid -> Loc.logFreqInvalid
+                                derivedBand == null -> Loc.logFreqOutside
+                                else -> Loc.logFreqBand(derivedBand)
+                            }
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp)
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Field(Loc.logBand, band, Modifier.weight(1f)) { band = it }
+                    BandDropdown(band, Modifier.weight(1f)) { band = it }
                     Field(Loc.logMode, mode, Modifier.weight(1f)) { mode = it }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -429,14 +462,15 @@ internal fun QsoEntryDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = call.isNotBlank(),
+                enabled = call.isNotBlank() && !freqInvalid,
                 onClick = {
                     onSave(
                         QsoEntity(
                             callsign = call.trim().uppercase(),
                             dateYmd = date.trim(),
                             timeHm = time.trim(),
-                            band = band.trim().ifBlank { null },
+                            band = (derivedBand ?: band.trim()).ifBlank { null },
+                            freqMhz = freqMhz,
                             mode = mode.trim().ifBlank { null },
                             rstSent = rs.trim().ifBlank { null },
                             rstRcvd = rr.trim().ifBlank { null },
@@ -450,6 +484,31 @@ internal fun QsoEntryDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(Loc.favCancel) } }
     )
+}
+
+/** Band picker with the ADIF band names; "" means no band. */
+@Composable
+private fun BandDropdown(value: String, modifier: Modifier = Modifier, onSelect: (String) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box(modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(Loc.logBand) },
+            singleLine = true,
+            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
+            modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp)
+        )
+        // Read-only text fields swallow taps, so an overlay opens the menu.
+        Box(Modifier.matchParentSize().clickable { open = true })
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(Loc.logBandNone) }, onClick = { onSelect(""); open = false })
+            AmateurBands.names.forEach { b ->
+                DropdownMenuItem(text = { Text(b) }, onClick = { onSelect(b); open = false })
+            }
+        }
+    }
 }
 
 @Composable

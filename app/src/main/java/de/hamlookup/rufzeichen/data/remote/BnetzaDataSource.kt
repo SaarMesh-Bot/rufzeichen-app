@@ -2,6 +2,7 @@ package de.hamlookup.rufzeichen.data.remote
 
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.data.model.DataSourceType
+import de.hamlookup.rufzeichen.data.model.GermanLicenceClass
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
@@ -128,12 +129,8 @@ class BnetzaDataSource(
     private fun cityFrom(address: String): String? =
         CITY_REGEX.find(address.trim())?.groupValues?.get(1)?.trim()?.takeIf { it.isNotBlank() }
 
-    private fun classLabel(code: String): String = when (code.trim().uppercase()) {
-        "A" -> "Klasse A"
-        "E" -> "Klasse E (Einsteiger)"
-        "N" -> "Klasse N (Einsteiger)"
-        else -> code.trim()
-    }
+    private fun classLabel(code: String): String =
+        GermanLicenceClass.fromCode(code)?.label ?: code.trim()
 
     private fun clean(s: String): String =
         buildString { s.forEach { append(if (it.isWhitespace()) ' ' else it) } }
