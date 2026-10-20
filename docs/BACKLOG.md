@@ -16,7 +16,10 @@
       zweite Play-Warnung; risikolos.
 - [ ] **Relaissuche „in der Nähe"** – Hybrid:
       - Standardquelle für alle: **repeatermap.de (DK3ML)** – Anfrage auf Datenzugang/API am
-        20.10.2026 über das Kontaktformular verschickt – **Antwort abwarten**. Import wie die Länderregister
+        20.10.2026 über das Kontaktformular verschickt – **Antwort abwarten**.
+        repeatermap.de hat eine JSON-API (repeatermap.de/api.php): Token nur auf Anfrage (Kontaktformular),
+        Umkreissuche weltweit, Rate-Limits ohne Zahlen. Endpunkte/Felder/Lizenz nicht öffentlich dokumentiert –
+        mit dem Token erfragen. Token gehört auf den eigenen Server, nicht in die App. Import wie die Länderregister
         (`repeaters.sqlite`, wöchentlicher Timer), Endpunkt „Relais in der Nähe" mit
         Entfernung/Peilung, Filter nach Band/Modus, Quellenangabe „Daten: repeatermap.de (DK3ML)".
       - Optional: **RepeaterBook Connect** – On-Device-ContentProvider
