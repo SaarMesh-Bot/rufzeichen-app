@@ -8,7 +8,7 @@
 
 ## Geplant für 2.1
 
-- [ ] **R8 aktivieren** (`isMinifyEnabled = true`, `isShrinkResources = true`) inkl. Keep-Regeln für
+- [x] **R8 aktiviert** in v1.15.1 (32), zusammen mit activity-compose 1.10.1 wegen Edge-to-Edge-Hinweis – (`isMinifyEnabled = true`, `isShrinkResources = true`) inkl. Keep-Regeln für
       Room, osmdroid und JSON-Parsing. Play meldet aktuell: DEX-Optimierung „Niedrig",
       unkomprimierte DEX-Größe 21,8 MB. Mapping-Datei wird dann automatisch mit hochgeladen.
       **Nur mit eigener geschlossener Test-Beta vor Produktion.**

@@ -13,8 +13,8 @@ android {
         applicationId = "de.hamlookup.rufzeichen"
         minSdk = 24
         targetSdk = 36
-        versionCode = 31
-        versionName = "1.15.0"
+        versionCode = 32
+        versionName = "1.15.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -37,7 +37,10 @@ android {
             signingConfig = signingConfigs.getByName("stable")
         }
         release {
-            isMinifyEnabled = false
+            // R8: shrinks and obfuscates the release build (Play "DEX optimisation").
+            // The mapping file is bundled into the AAB and uploaded to Play automatically.
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("stable")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
