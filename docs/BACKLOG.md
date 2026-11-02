@@ -30,6 +30,7 @@
       auf der Karte von repeatermap.de. Koordinaten auf 2 Nachkommastellen (~1 km) gerundet.
       Getestet (02.11.2026): Modi und Bänder einzeln und kombiniert funktionieren; Werte sind
       case-sensitiv (`DStar`, nicht `D-Star`/`dmr` → wird ignoriert); Radius nur 25/50/100/150.
+      DK3ML (02.11.2026): Text ok; da nur verlinkt wird, als Link beschreiben, nicht als „Relaisdaten“.
       Code: `data/tools/RepeaterMap.kt`, `ui/tools/RepeaterSearchScreen.kt`.
       **Play Console:** Datensicherheit um „Ungefährer Standort" ergänzen (wird nicht vom Entwickler
       erhoben, nur im Link an repeatermap.de übergeben).

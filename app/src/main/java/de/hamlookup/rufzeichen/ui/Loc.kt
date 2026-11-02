@@ -352,7 +352,7 @@ object Loc {
 
     // ---- repeater search (repeatermap.de deep link) --------------------------
     val toolRpt get() = s("Relais in der Nähe", "Repeaters nearby")
-    val toolRptSub get() = s("Umkreissuche auf repeatermap.de", "Radius search on repeatermap.de")
+    val toolRptSub get() = s("Link zur Umkreissuche auf repeatermap.de", "Link to the radius search on repeatermap.de")
     val rptIntro get() = s(
         "Sucht Relais im Umkreis auf repeatermap.de und zeigt das Ergebnis direkt im Browser an.",
         "Searches repeaters around you on repeatermap.de and shows the result in the browser."
@@ -387,9 +387,9 @@ object Loc {
     )
     val rptNoBrowser get() = s("Kein Browser zum Öffnen gefunden.", "No browser found to open the link.")
     val rptCredit get() = s(
-        "Daten und Suche: repeatermap.de von Martin Leuschner, DK3ML. Die App speichert keine " +
-            "Relaisdaten. Dein Standort wird auf ca. 1 km gerundet an repeatermap.de übergeben.",
-        "Data and search: repeatermap.de by Martin Leuschner, DK3ML. The app stores no repeater " +
-            "data. Your position is passed to repeatermap.de rounded to about 1 km."
+        "Öffnet die Umkreissuche auf repeatermap.de (DK3ML) im Browser. Die App selbst lädt " +
+            "und speichert keine Relaisdaten; dein Standort wird auf ca. 1 km gerundet im Link übergeben.",
+        "Opens the radius search on repeatermap.de (DK3ML) in the browser. The app itself does not " +
+            "load or store any repeater data; your position is passed in the link, rounded to about 1 km."
     )
 }
