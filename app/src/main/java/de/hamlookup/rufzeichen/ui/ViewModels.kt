@@ -9,6 +9,7 @@ import de.hamlookup.rufzeichen.data.tools.Adif
 import de.hamlookup.rufzeichen.data.repository.CallsignRepository
 import de.hamlookup.rufzeichen.data.repository.FavoriteItem
 import de.hamlookup.rufzeichen.data.repository.SearchOutcome
+import de.hamlookup.rufzeichen.data.repository.RepeaterFilter
 import de.hamlookup.rufzeichen.data.repository.Settings
 import de.hamlookup.rufzeichen.data.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,9 @@ import kotlinx.coroutines.flow.stateIn
 import de.hamlookup.rufzeichen.ui.detail.greatCircleKm
 import de.hamlookup.rufzeichen.ui.detail.maidenheadToCenter
 import kotlinx.coroutines.launch
+
+/** Own station position for tools (e.g. repeater search). */
+data class OwnStation(val lat: Double, val lon: Double, val locator: String?)
 
 /** UI state for the search screen. */
 data class SearchUiState(
@@ -187,8 +191,27 @@ class SettingsViewModel(
 }
 
 class ToolsViewModel(
-    private val repository: CallsignRepository
+    private val repository: CallsignRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
+    /** Own station position from the settings (exact point or locator centre), if set. */
+    val ownStation: StateFlow<OwnStation?> = settingsRepository.settings
+        .map { s ->
+            val p = when {
+                s.ownLat != null && s.ownLon != null -> s.ownLat to s.ownLon
+                else -> maidenheadToCenter(s.ownLocator.ifBlank { null })
+            }
+            p?.let { OwnStation(it.first, it.second, s.ownLocator.ifBlank { null }) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val repeaterFilter: StateFlow<RepeaterFilter?> = settingsRepository.repeaterFilter
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun saveRepeaterFilter(filter: RepeaterFilter) = viewModelScope.launch {
+        settingsRepository.updateRepeaterFilter(filter)
+    }
+
     val qsos: StateFlow<List<QsoEntity>> = repository.qsos.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
     )
@@ -217,7 +240,7 @@ class AppViewModelFactory(
         modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
             SettingsViewModel(settingsRepository) as T
         modelClass.isAssignableFrom(ToolsViewModel::class.java) ->
-            ToolsViewModel(callsignRepository) as T
+            ToolsViewModel(callsignRepository, settingsRepository) as T
         else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
     }
 }

@@ -71,7 +71,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-private enum class ToolPage { HUB, CALC, REF, BANDS, LOG }
+private enum class ToolPage { HUB, CALC, REF, BANDS, LOG, RPT }
 
 private fun String.toNum(): Double? = trim().replace(',', '.').toDoubleOrNull()
 private fun fmt(v: Double, dec: Int = 2): String = "%.${dec}f".format(Locale.US, v)
@@ -96,6 +96,7 @@ fun ToolsScreen(viewModel: ToolsViewModel) {
                         ToolPage.REF -> Loc.toolRef
                         ToolPage.BANDS -> Loc.tabBands
                         ToolPage.LOG -> Loc.toolLog
+                        ToolPage.RPT -> Loc.toolRpt
                         else -> Loc.toolsTitle
                     },
                     style = MaterialTheme.typography.titleMedium,
@@ -109,6 +110,7 @@ fun ToolsScreen(viewModel: ToolsViewModel) {
             ToolPage.REF -> ReferenceScreen()
             ToolPage.BANDS -> BandPlanScreen()
             ToolPage.LOG -> LogbookScreen(viewModel)
+            ToolPage.RPT -> RepeaterSearchScreen(viewModel)
         }
     }
 }
@@ -123,6 +125,7 @@ private fun Hub(onOpen: (ToolPage) -> Unit) {
         HubCard(Loc.toolRef, Loc.toolRefSub) { onOpen(ToolPage.REF) }
         HubCard(Loc.tabBands, Loc.toolBandsSub) { onOpen(ToolPage.BANDS) }
         HubCard(Loc.toolLog, Loc.toolLogSub) { onOpen(ToolPage.LOG) }
+        HubCard(Loc.toolRpt, Loc.toolRptSub) { onOpen(ToolPage.RPT) }
     }
 }
 

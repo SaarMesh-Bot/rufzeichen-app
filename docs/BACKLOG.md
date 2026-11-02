@@ -22,7 +22,18 @@
       **Nur mit eigener geschlossener Test-Beta vor Produktion.**
 - [ ] **Native Debug-Symbole** im Release-Build (`ndk { debugSymbolLevel = "FULL" }`) – behebt die
       zweite Play-Warnung; risikolos.
-- [ ] **Relaissuche „in der Nähe"** – Hybrid:
+- [x] **Relaissuche „in der Nähe" per Deeplink** in v1.16.0 (33): Werkzeuge → „Relais in der Nähe".
+      DK3ML hat am 02.11.2026 das Verlinken ausdrücklich erlaubt und das Deeplink-Format vorgeschlagen.
+      Die App öffnet `repeatermap.de/aroundme.php?step=2&lat=..&lon=..&radius_km=..&modes[]=..&bands[]=..`
+      im Custom Tab, lädt/speichert **keine** Relaisdaten. Positionsquelle: ungefährer Gerätestandort
+      (ACCESS_COARSE_LOCATION, kein Play Services), eigene Station aus den Einstellungen, oder Auswahl
+      auf der Karte von repeatermap.de. Koordinaten auf 2 Nachkommastellen (~1 km) gerundet.
+      Getestet (02.11.2026): Modi und Bänder einzeln und kombiniert funktionieren; Werte sind
+      case-sensitiv (`DStar`, nicht `D-Star`/`dmr` → wird ignoriert); Radius nur 25/50/100/150.
+      Code: `data/tools/RepeaterMap.kt`, `ui/tools/RepeaterSearchScreen.kt`.
+      **Play Console:** Datensicherheit um „Ungefährer Standort" ergänzen (wird nicht vom Entwickler
+      erhoben, nur im Link an repeatermap.de übergeben).
+- [ ] **Relaisliste in der App selbst** (eigene Anzeige statt Deeplink) – Hybrid:
       - Standardquelle für alle: **repeatermap.de (DK3ML)** – Anfrage auf Datenzugang/API am
         20.10.2026 über das Kontaktformular verschickt. **Absage (Anfang 11/2026):** DK3ML gibt derzeit
         keine API-Keys für Projekte heraus, die die Daten öffentlich anzeigen (Sorge vor Aufsplitterung

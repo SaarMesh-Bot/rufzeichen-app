@@ -349,4 +349,47 @@ object Loc {
     val logDeleteMsg get() = s("Diesen Logbuch-Eintrag löschen?", "Delete this logbook entry?")
     val logExportEmpty get() = s("Keine QSOs zum Exportieren.", "No QSOs to export.")
     val logShareTitle get() = s("Logbuch (ADIF)", "Logbook (ADIF)")
+
+    // ---- repeater search (repeatermap.de deep link) --------------------------
+    val toolRpt get() = s("Relais in der Nähe", "Repeaters nearby")
+    val toolRptSub get() = s("Umkreissuche auf repeatermap.de", "Radius search on repeatermap.de")
+    val rptIntro get() = s(
+        "Sucht Relais im Umkreis auf repeatermap.de und zeigt das Ergebnis direkt im Browser an.",
+        "Searches repeaters around you on repeatermap.de and shows the result in the browser."
+    )
+    val rptPosition get() = s("Standort", "Position")
+    val rptSrcGps get() = s("Aktueller Standort", "Current location")
+    val rptSrcOwn get() = s("Eigene Station", "Own station")
+    val rptSrcMap get() = s("Auf der Karte wählen", "Pick on map")
+    val rptSrcGpsSub get() = s("Ungefährer Standort des Geräts", "Approximate device location")
+    fun rptSrcOwnSub(loc: String?) = if (loc != null) s("Aus den Einstellungen ($loc)", "From settings ($loc)")
+        else s("Aus den Einstellungen", "From settings")
+    val rptSrcOwnMissing get() = s(
+        "Noch nicht gesetzt – im Reiter „Einstellungen“ festlegen",
+        "Not set yet – set it in the Settings tab"
+    )
+    val rptSrcMapSub get() = s("Position auf repeatermap.de setzen", "Set the position on repeatermap.de")
+    val rptModes get() = s("Betriebsarten", "Modes")
+    val rptBands get() = s("Bänder", "Bands")
+    val rptRadius get() = s("Umkreis", "Radius")
+    val rptAllHint get() = s("Nichts ausgewählt = alle", "Nothing selected = all")
+    val rptReset get() = s("Filter zurücksetzen", "Reset filters")
+    val rptBandOther get() = s("Sonstige", "Other")
+    val rptShow get() = s("Relais anzeigen", "Show repeaters")
+    val rptLocating get() = s("Standort wird ermittelt …", "Getting location …")
+    val rptNoPermission get() = s(
+        "Ohne Standortfreigabe kannst du „Eigene Station“ oder „Auf der Karte wählen“ nutzen.",
+        "Without location access you can use “Own station” or “Pick on map”."
+    )
+    val rptLocationOff get() = s(
+        "Standort nicht verfügbar. Ist die Standortermittlung im Gerät eingeschaltet?",
+        "Location unavailable. Is location turned on in the device settings?"
+    )
+    val rptNoBrowser get() = s("Kein Browser zum Öffnen gefunden.", "No browser found to open the link.")
+    val rptCredit get() = s(
+        "Daten und Suche: repeatermap.de von Martin Leuschner, DK3ML. Die App speichert keine " +
+            "Relaisdaten. Dein Standort wird auf ca. 1 km gerundet an repeatermap.de übergeben.",
+        "Data and search: repeatermap.de by Martin Leuschner, DK3ML. The app stores no repeater " +
+            "data. Your position is passed to repeatermap.de rounded to about 1 km."
+    )
 }

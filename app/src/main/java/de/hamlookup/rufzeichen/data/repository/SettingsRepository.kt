@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +32,17 @@ data class Settings(
     val ownLon: Double? = null
 )
 
+/** Where the repeater search takes its position from. */
+enum class RepeaterPositionSource { GPS, OWN_STATION, PICK_ON_MAP }
+
+/** Last used filter of the repeater search (repeatermap.de deep link). */
+data class RepeaterFilter(
+    val modes: Set<String> = emptySet(),
+    val bands: Set<String> = emptySet(),
+    val radiusKm: Int = 50,
+    val source: RepeaterPositionSource = RepeaterPositionSource.GPS
+)
+
 class SettingsRepository(private val context: Context) {
 
     private object Keys {
@@ -43,6 +56,31 @@ class SettingsRepository(private val context: Context) {
         val OWN_LOCATOR = stringPreferencesKey("own_locator")
         val OWN_LAT = doublePreferencesKey("own_lat")
         val OWN_LON = doublePreferencesKey("own_lon")
+        val RPT_MODES = stringSetPreferencesKey("repeater_modes")
+        val RPT_BANDS = stringSetPreferencesKey("repeater_bands")
+        val RPT_RADIUS = intPreferencesKey("repeater_radius_km")
+        val RPT_SOURCE = stringPreferencesKey("repeater_source")
+    }
+
+    val repeaterFilter: Flow<RepeaterFilter> = context.dataStore.data.map { p ->
+        RepeaterFilter(
+            modes = p[Keys.RPT_MODES] ?: emptySet(),
+            bands = p[Keys.RPT_BANDS] ?: emptySet(),
+            radiusKm = p[Keys.RPT_RADIUS] ?: 50,
+            source = p[Keys.RPT_SOURCE]
+                ?.let { v -> RepeaterPositionSource.entries.firstOrNull { it.name == v } }
+                ?: RepeaterPositionSource.GPS
+        )
+    }
+
+    /** Stored separately from [update] so saving settings never resets the filter. */
+    suspend fun updateRepeaterFilter(filter: RepeaterFilter) {
+        context.dataStore.edit { p ->
+            p[Keys.RPT_MODES] = filter.modes
+            p[Keys.RPT_BANDS] = filter.bands
+            p[Keys.RPT_RADIUS] = filter.radiusKm
+            p[Keys.RPT_SOURCE] = filter.source.name
+        }
     }
 
     val settings: Flow<Settings> = context.dataStore.data.map { p ->
