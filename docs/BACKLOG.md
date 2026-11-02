@@ -6,6 +6,14 @@
   Erste Einreichung (v29) wurde abgelehnt, weil der Prüfer die optionalen HamQTH-Felder als
   Login-Wand gewertet hat → in v30 klar als optional gekennzeichnet + „Anmeldedaten: Nein" gespeichert.
 
+- **v1.15.1 (32)** – am 02.11.2026 als Produktions-Release eingereicht, **gestaffelter Roll-out 20 %**
+  (verwaltete Veröffentlichung ist aktiv → nach Googles Freigabe noch manuell „Veröffentlichen“,
+  danach bei stabilen Absturzzahlen auf 100 % erhöhen). Download-Größe durch R8: 1,82 MB (−6 MB).
+  Produktion ist aktuell nur in **14 Ländern** ausgerichtet (BE, DE, DK, FR, GR, NL, NO, PL, PT, SE,
+  CH, ES, CZ, AT) – u. a. USA, Kanada, Finnland, Ungarn, Litauen, Rumänien fehlen. Klären, ob gewollt.
+- Play-Hinweise zu v32 (keine Blocker): veraltete Edge-to-Edge-APIs, R8-Optimierung weiter ausbaubar,
+  native Debug-Symbole fehlen. Frist Arbeitsspeicher-/DEX-Standards: **Feb. 2027**.
+
 ## Geplant für 2.1
 
 - [x] **R8 aktiviert** in v1.15.1 (32), zusammen mit activity-compose 1.10.1 wegen Edge-to-Edge-Hinweis – (`isMinifyEnabled = true`, `isShrinkResources = true`) inkl. Keep-Regeln für
