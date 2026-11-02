@@ -16,7 +16,11 @@
       zweite Play-Warnung; risikolos.
 - [ ] **Relaissuche „in der Nähe"** – Hybrid:
       - Standardquelle für alle: **repeatermap.de (DK3ML)** – Anfrage auf Datenzugang/API am
-        20.10.2026 über das Kontaktformular verschickt – **Antwort abwarten**.
+        20.10.2026 über das Kontaktformular verschickt. **Absage (Anfang 11/2026):** DK3ML gibt derzeit
+        keine API-Keys für Projekte heraus, die die Daten öffentlich anzeigen (Sorge vor Aufsplitterung
+        der Community und veralteten Kopien; repeatermap.de hat selbst „Relais im Umkreis").
+        Angebot: in ein paar Monaten erneut fragen (frühestens ~02/2027). **Keine Daten von
+        repeatermap.de übernehmen oder abgreifen.** Idee: in der App nur auf repeatermap.de verlinken.
         repeatermap.de hat eine JSON-API (repeatermap.de/api.php): Token nur auf Anfrage (Kontaktformular),
         Umkreissuche weltweit, Rate-Limits ohne Zahlen. Endpunkte/Felder/Lizenz nicht öffentlich dokumentiert –
         mit dem Token erfragen. Token gehört auf den eigenen Server, nicht in die App. Import wie die Länderregister
@@ -26,7 +30,9 @@
         (`content://com.zbm2.repeaterbook.RBContentProvider/repeaters`), nur für Nutzer mit
         installierter RepeaterBook-App + Connect-Abo. Umschalter wie bei HamQTH; Daten verlassen
         das Gerät nicht. Android-11+-Paketsichtbarkeit (`<queries>`) im Manifest nötig.
-      - Alternative/Zweitanfrage: DL3EL (FM-Relaisliste DL).
+      - Alternative/Zweitanfrage: DARC-Relaisliste (relaislisten.darc.de, DL3EL / DARC-VUS-Referat).
+      - Geprüft: BNetzA „Standorte von automatisch arbeitenden Amateurfunkstellen"
+        (ans.bundesnetzagentur.de/Amateurfunk/Standorte.aspx) – Seite zeigt nur „in Vorbereitung", keine Daten.
 - [x] **Klassenbezeichnungen vereinheitlicht** (Nutzerhinweis DO6KAP): zentrale Definition
       `data/model/GermanLicenceClass.kt` nach AFuV-Novelle 2024 – N = Einstiegsklasse,
       E = mittlere Stufe, A = volle Klasse. Suche, Detail, Offline-Analyse und Bänder-Übersicht
