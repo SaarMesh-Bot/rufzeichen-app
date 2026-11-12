@@ -41,6 +41,8 @@ android {
             // The mapping file is bundled into the AAB and uploaded to Play automatically.
             isMinifyEnabled = true
             isShrinkResources = true
+            // Native debug symbols for the bundled .so files (Play Console warning).
+            ndk { debugSymbolLevel = "FULL" }
             signingConfig = signingConfigs.getByName("stable")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

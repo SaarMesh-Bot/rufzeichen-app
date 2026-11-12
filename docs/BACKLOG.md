@@ -20,8 +20,12 @@
       Room, osmdroid und JSON-Parsing. Play meldet aktuell: DEX-Optimierung „Niedrig",
       unkomprimierte DEX-Größe 21,8 MB. Mapping-Datei wird dann automatisch mit hochgeladen.
       **Nur mit eigener geschlossener Test-Beta vor Produktion.**
-- [ ] **Native Debug-Symbole** im Release-Build (`ndk { debugSymbolLevel = "FULL" }`) – behebt die
-      zweite Play-Warnung; risikolos.
+- [x] **Native Debug-Symbole** im Release-Build (`ndk { debugSymbolLevel = "FULL" }`) eingetragen
+      (12.11.2026), kommt mit dem nächsten Release. Hinweis: Die .so-Dateien stammen nur aus
+      AndroidX-Bibliotheken (graphics.path, datastore) und sind evtl. schon gestrippt – falls Play
+      die Warnung weiter zeigt, ist sie harmlos und kann ignoriert werden.
+- [ ] **Länder-Ausrichtung erweitern:** amtliche Quellen im Backend gibt es auch für US, CA, FI,
+      HU, LT, RO – diese fehlen in der Produktions-Ausrichtung. Für US/CA vorher en-US-Store-Eintrag.
 - [x] **Relaissuche „in der Nähe" per Deeplink** in v1.16.0 (33): Werkzeuge → „Relais in der Nähe".
       DK3ML hat am 02.11.2026 das Verlinken ausdrücklich erlaubt und das Deeplink-Format vorgeschlagen.
       Die App öffnet `repeatermap.de/aroundme.php?step=2&lat=..&lon=..&radius_km=..&modes[]=..&bands[]=..`
