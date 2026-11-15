@@ -354,6 +354,52 @@ object Loc {
     val toolRpt get() = s("Relais in der Nähe", "Repeaters nearby")
     val toolRptSub get() = s("Link zur Umkreissuche auf repeatermap.de", "Link to the radius search on repeatermap.de")
 
+    // ---- Locator-Werkzeuge -------------------------------------------------------
+    val toolLoc get() = s("Locator & Peilung", "Locator & bearing")
+    val toolLocSub get() = s("Locator ↔ Koordinaten, Entfernung, Peilung, Kompass", "Locator ↔ coordinates, distance, bearing, compass")
+    val locInputHint get() = s("JN39KF oder 49.24, 6.99", "JN39KF or 49.24, 6.99")
+    val locInvalid get() = s("Kein gültiger Locator und keine Koordinaten", "Not a valid locator or coordinates")
+    val locCopied get() = s("Kopiert", "Copied")
+    val locCopyHint get() = s("Tippe auf einen Wert, um ihn zu kopieren.", "Tap a value to copy it.")
+    val locConvertTitle get() = s("Locator ↔ Koordinaten", "Locator ↔ coordinates")
+    val locInputLabel get() = s("Locator oder Koordinaten", "Locator or coordinates")
+    val locUseOwn get() = s("Eigener Standort", "My QTH")
+    val locLocator6 get() = s("Locator (6)", "Locator (6)")
+    val locLocator8 get() = s("Locator (8)", "Locator (8)")
+    val locDecimal get() = s("Dezimal", "Decimal")
+    val locLat get() = s("Breite", "Latitude")
+    val locLon get() = s("Länge", "Longitude")
+    fun locCellNote(loc: String, size: String) = s(
+        "Koordinaten = Mitte des Feldes $loc (ca. $size).",
+        "Coordinates = centre of square $loc (approx. $size)."
+    )
+    val locPathTitle get() = s("Entfernung & Peilung", "Distance & bearing")
+    val locFrom get() = s("Von (A)", "From (A)")
+    val locTo get() = s("Nach (B)", "To (B)")
+    val locSwap get() = s("Tauschen", "Swap")
+    val locDistance get() = s("Entfernung", "Distance")
+    val locDistanceMi get() = s("Entfernung (Meilen)", "Distance (miles)")
+    val locBearing get() = s("Peilung A → B", "Bearing A → B")
+    val locReverse get() = s("Gegenpeilung B → A", "Reverse B → A")
+    val locLongPath get() = s("Long Path", "Long path")
+    val locCenterNote get() = s("Bei Locatoren wird mit der Feldmitte gerechnet.", "Locators are calculated from the centre of the square.")
+    val locNoOwn get() = s("Tipp: Mit deinem Locator in den Einstellungen ist A automatisch dein Standort.",
+        "Tip: set your locator in the settings and A becomes your QTH automatically.")
+    val locCompassTitle get() = s("Kompass zum Ziel", "Compass to target")
+    val locNoSensor get() = s("Dieses Gerät hat keinen Kompass-Sensor.", "This device has no compass sensor.")
+    val locCompassNeedTarget get() = s("Gib oben A und B ein – dann zeigt der Pfeil die Richtung zu B.",
+        "Enter A and B above – the arrow then points towards B.")
+    val locOnTarget get() = s("✓ Richtung stimmt", "✓ On target")
+    fun locTurnRight(d: Int) = s("$d° nach rechts drehen", "Turn $d° right")
+    fun locTurnLeft(d: Int) = s("$d° nach links drehen", "Turn $d° left")
+    fun locHeadingNow(h: String, t: String) = s("Gerät zeigt $h · Ziel $t (rechtweisend)", "Device heading $h · target $t (true north)")
+    val locCompassHint get() = s(
+        "Handy flach halten, Oberkante zeigt die Blickrichtung. Fern von Metall und Magneten; " +
+            "bei ungenauer Anzeige das Handy in einer Acht bewegen. Für die Antennenausrichtung nur als Anhaltspunkt.",
+        "Hold the phone flat, the top edge is the viewing direction. Keep away from metal and magnets; " +
+            "if inaccurate, move the phone in a figure eight. A rough guide for antenna alignment only."
+    )
+
     // ---- Funkwetter ------------------------------------------------------------
     val toolWx get() = s("Funkwetter", "Propagation")
     val toolWxSub get() = s("Sonnenflux, K-/A-Index, Bandbedingungen, Grayline", "Solar flux, K/A index, band conditions, grayline")
