@@ -69,7 +69,8 @@
       **Vor Release testen:** Update einer bestehenden Installation mit Logbuch-Einträgen
       (Migration 4→5), damit keine QSOs verloren gehen.
 - [x] **Englischer Store-Eintrag (en-US)** aktualisiert (15.11.2026), inkl. Relaissuche und
-      Logbuch-Frequenz. Hinweis: en-US ist der Standard-Store-Eintrag, Deutsch die Übersetzung.
+      Logbuch-Frequenz. Standardsprache ist de-DE; Übersetzungen en-US und en-GB.
+- [ ] **en-GB-Store-Eintrag** prüfen: evtl. noch alte automatische Übersetzung → Texte aus en-US übernehmen.
 
 ## Später (evtl. AGP-Upgrade)
 
