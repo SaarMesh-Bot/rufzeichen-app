@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import de.hamlookup.rufzeichen.data.local.QsoEntity
+import de.hamlookup.rufzeichen.data.remote.Propagation
+import de.hamlookup.rufzeichen.data.remote.PropagationDataSource
 import de.hamlookup.rufzeichen.data.model.Callsign
 import de.hamlookup.rufzeichen.data.tools.Adif
 import de.hamlookup.rufzeichen.data.repository.CallsignRepository
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import de.hamlookup.rufzeichen.ui.detail.greatCircleKm
@@ -204,6 +207,38 @@ class ToolsViewModel(
             p?.let { OwnStation(it.first, it.second, s.ownLocator.ifBlank { null }) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // ---- Funkwetter --------------------------------------------------------
+    private val propagationSource = PropagationDataSource()
+
+    /** UI state of the space weather screen. */
+    data class PropagationState(
+        val loading: Boolean = false,
+        val data: Propagation? = null,
+        val error: Boolean = false,
+        val loadedAtMs: Long = 0L
+    )
+
+    private val _propagation = MutableStateFlow(PropagationState())
+    val propagation: StateFlow<PropagationState> = _propagation.asStateFlow()
+
+    /** Loads the summary; skipped if fresh (< 10 min) unless [force]. */
+    fun loadPropagation(force: Boolean = false) {
+        val cur = _propagation.value
+        if (cur.loading) return
+        if (!force && cur.data != null && System.currentTimeMillis() - cur.loadedAtMs < 10 * 60_000L) return
+        _propagation.value = cur.copy(loading = true, error = false)
+        viewModelScope.launch {
+            val url = settingsRepository.settings.first().backendUrl
+            propagationSource.load(url)
+                .onSuccess {
+                    _propagation.value = PropagationState(data = it, loadedAtMs = System.currentTimeMillis())
+                }
+                .onFailure {
+                    _propagation.value = _propagation.value.copy(loading = false, error = true)
+                }
+        }
+    }
 
     val repeaterFilter: StateFlow<RepeaterFilter?> = settingsRepository.repeaterFilter
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

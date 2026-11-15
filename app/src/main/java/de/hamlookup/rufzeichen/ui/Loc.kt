@@ -353,6 +353,81 @@ object Loc {
     // ---- repeater search (repeatermap.de deep link) --------------------------
     val toolRpt get() = s("Relais in der Nähe", "Repeaters nearby")
     val toolRptSub get() = s("Link zur Umkreissuche auf repeatermap.de", "Link to the radius search on repeatermap.de")
+
+    // ---- Funkwetter ------------------------------------------------------------
+    val toolWx get() = s("Funkwetter", "Propagation")
+    val toolWxSub get() = s("Sonnenflux, K-/A-Index, Bandbedingungen, Grayline", "Solar flux, K/A index, band conditions, grayline")
+    val wxLoading get() = s("Lade Funkwetter …", "Loading propagation …")
+    val wxError get() = s("Funkwetter konnte nicht geladen werden. Bitte Internetverbindung prüfen.",
+        "Could not load propagation data. Please check your connection.")
+    val wxRetry get() = s("Erneut versuchen", "Retry")
+    val wxRefresh get() = s("Aktualisieren", "Refresh")
+    fun wxUpdated(t: String) = s("Stand: $t", "Updated: $t")
+    val wxStale get() = s("Daten evtl. veraltet – Quelle gerade nicht erreichbar.", "Data may be outdated – source currently unreachable.")
+    val wxSolar get() = s("Sonne & Erdmagnetfeld", "Sun & geomagnetic field")
+    val wxSfi get() = s("Sonnenflux (SFI)", "Solar flux (SFI)")
+    val wxSsn get() = s("Sonnenflecken", "Sunspots")
+    val wxA get() = s("A-Index", "A index")
+    val wxK get() = s("K-Index", "K index")
+    val wxXray get() = s("Röntgen", "X-ray")
+    val wxWind get() = s("Sonnenwind", "Solar wind")
+    val wxBz get() = s("Bz", "Bz")
+    val wxGeomag get() = s("Magnetfeld", "Geomag. field")
+    val wxNoise get() = s("Störpegel", "Noise level")
+    val wxHf get() = s("KW-Bedingungen", "HF conditions")
+    val wxBand get() = s("Bänder", "Bands")
+    val wxDay get() = s("Tag", "Day")
+    val wxNight get() = s("Nacht", "Night")
+    val wxVhf get() = s("UKW-Phänomene", "VHF phenomena")
+    val wxKpTitle get() = s("Kp-Index, letzte 48 h", "Kp index, last 48 h")
+    val wxKpHint get() = s("Kp 0–3 ruhig · 4 unruhig · ab 5 Sturm (Kurzwelle gestört, Aurora möglich)",
+        "Kp 0–3 quiet · 4 unsettled · 5+ storm (HF disturbed, aurora possible)")
+    val wxScales get() = s("NOAA-Skalen", "NOAA scales")
+    val wxScalesHint get() = s("R = Funk-Blackout · S = Strahlungssturm · G = geomagnetischer Sturm (0 = keiner)",
+        "R = radio blackout · S = radiation storm · G = geomagnetic storm (0 = none)")
+    val wxGray get() = s("Grayline an deinem Standort (UTC)", "Grayline at your location (UTC)")
+    val wxGrayNoQth get() = s("Trage in den Einstellungen deinen Locator ein, dann siehst du hier Sonnenauf- und -untergang für die Grayline.",
+        "Set your locator in the settings to see sunrise and sunset for grayline here.")
+    val wxSunrise get() = s("Sonnenaufgang", "Sunrise")
+    val wxSunset get() = s("Sonnenuntergang", "Sunset")
+    val wxGrayHint get() = s("Rund ±30 min um Sonnenauf- und -untergang ist die Dämpfung auf den unteren KW-Bändern besonders gering – gut für DX auf 160–40 m.",
+        "Around ±30 min of sunrise and sunset absorption on the low HF bands is especially low – good for DX on 160–40 m.")
+    val wxPolarDay get() = s("Polartag – kein Sonnenuntergang", "Polar day – no sunset")
+    val wxPolarNight get() = s("Polarnacht – kein Sonnenaufgang", "Polar night – no sunrise")
+    val wxSources get() = s("Daten", "Data")
+    val wxCalcNote get() = s("Bandbedingungen sind berechnete Richtwerte für die Nordhalbkugel.",
+        "Band conditions are calculated estimates for the northern hemisphere.")
+
+    fun wxCondition(v: String?): String = when (v?.trim()?.lowercase()) {
+        "good" -> s("Gut", "Good")
+        "fair" -> s("Mittel", "Fair")
+        "poor" -> s("Schlecht", "Poor")
+        "band closed" -> s("Geschlossen", "Closed")
+        null, "" -> "–"
+        else -> v
+    }
+
+    fun wxGeomagText(v: String?): String = when (v?.trim()?.uppercase()) {
+        "VR QUIET" -> s("Sehr ruhig", "Very quiet")
+        "QUIET" -> s("Ruhig", "Quiet")
+        "UNSETTLD", "UNSETTLED" -> s("Unruhig", "Unsettled")
+        "ACTIVE" -> s("Aktiv", "Active")
+        "MIN STORM" -> s("Leichter Sturm", "Minor storm")
+        "MAJ STORM" -> s("Starker Sturm", "Major storm")
+        "SEV STORM" -> s("Schwerer Sturm", "Severe storm")
+        "EXT STORM" -> s("Extremer Sturm", "Extreme storm")
+        null, "" -> "–"
+        else -> v
+    }
+
+    fun wxVhfName(name: String, location: String): String = when (name.lowercase() to location.lowercase()) {
+        "vhf-aurora" to "northern_hemi" -> s("Aurora (Nordhalbkugel)", "Aurora (northern hemisphere)")
+        "e-skip" to "europe" -> s("Es Europa 2 m", "Es Europe 2 m")
+        "e-skip" to "europe_4m" -> s("Es Europa 4 m", "Es Europe 4 m")
+        "e-skip" to "europe_6m" -> s("Es Europa 6 m", "Es Europe 6 m")
+        "e-skip" to "north_america" -> s("Es Nordamerika 2 m", "Es North America 2 m")
+        else -> "$name ($location)"
+    }
     val rptIntro get() = s(
         "Sucht Relais im Umkreis auf repeatermap.de und zeigt das Ergebnis direkt im Browser an.",
         "Searches repeaters around you on repeatermap.de and shows the result in the browser."
