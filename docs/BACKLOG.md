@@ -14,6 +14,11 @@
 - Play-Hinweise zu v32 (keine Blocker): veraltete Edge-to-Edge-APIs, R8-Optimierung weiter ausbaubar,
   native Debug-Symbole fehlen. Frist Arbeitsspeicher-/DEX-Standards: **Feb. 2027**.
 
+- **v1.18.0 (35)** – am 15.11.2026 als Produktions-Release eingereicht (**vollständiger Roll-out**,
+  nicht gestaffelt), zusammen mit 7 neuen Ländern, en-US/en-GB-Texten und Datensicherheit.
+  v1.15.1 (32) vorher auf 100 % abgeschlossen. v1.17.0 (34) nur im internen Test (übersprungen).
+  Nach Freigabe: verwaltete Veröffentlichung → manuell „Veröffentlichen“.
+
 ## Geplant für 2.1
 
 - [x] **R8 aktiviert** in v1.15.1 (32), zusammen mit activity-compose 1.10.1 wegen Edge-to-Edge-Hinweis – (`isMinifyEnabled = true`, `isShrinkResources = true`) inkl. Keep-Regeln für
