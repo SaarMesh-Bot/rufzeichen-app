@@ -24,8 +24,10 @@
       (12.11.2026), kommt mit dem nächsten Release. Hinweis: Die .so-Dateien stammen nur aus
       AndroidX-Bibliotheken (graphics.path, datastore) und sind evtl. schon gestrippt – falls Play
       die Warnung weiter zeigt, ist sie harmlos und kann ignoriert werden.
-- [ ] **Länder-Ausrichtung erweitern:** amtliche Quellen im Backend gibt es auch für US, CA, FI,
-      HU, LT, RO – diese fehlen in der Produktions-Ausrichtung. Für US/CA vorher en-US-Store-Eintrag.
+- [x] **Länder-Ausrichtung erweitert** (15.11.2026, zur Prüfung eingereicht): US, CA, FI, HU, LT, RO
+      (+1) ergänzt – für diese Länder hat das Backend amtliche Quellen.
+- [x] **Datensicherheit** (15.11.2026): „Ungefährer Standort“ = erhoben, nicht geteilt (nutzerinitiiert),
+      sitzungsspezifisch, optional, Zweck App-Funktionen. Verschlüsselung: ja; kein Konto.
 - [x] **Relaissuche „in der Nähe" per Deeplink** in v1.16.0 (33): Werkzeuge → „Relais in der Nähe".
       DK3ML hat am 02.11.2026 das Verlinken ausdrücklich erlaubt und das Deeplink-Format vorgeschlagen.
       Die App öffnet `repeatermap.de/aroundme.php?step=2&lat=..&lon=..&radius_km=..&modes[]=..&bands[]=..`
@@ -66,8 +68,8 @@
       ADIF-Bandnamen, ADIF-Export schreibt BAND und FREQ. DB-Version 5 (Spalte `qso.freqMhz`).
       **Vor Release testen:** Update einer bestehenden Installation mit Logbuch-Einträgen
       (Migration 4→5), damit keine QSOs verloren gehen.
-- [ ] **Englischer Store-Eintrag (en-US)** nachtragen – erst nach der 2.0-Freigabe, damit die
-      laufende Prüfung nicht neu startet. Texte liegen im Store-Kit.
+- [x] **Englischer Store-Eintrag (en-US)** aktualisiert (15.11.2026), inkl. Relaissuche und
+      Logbuch-Frequenz. Hinweis: en-US ist der Standard-Store-Eintrag, Deutsch die Übersetzung.
 
 ## Später (evtl. AGP-Upgrade)
 
