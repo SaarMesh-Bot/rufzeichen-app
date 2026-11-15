@@ -103,11 +103,20 @@
       java.time wegen minSdk 24; geprüft: Saarbrücken 15.11. 06:42/15:51 UTC).
       Release v1.17.0 auf GitHub, **noch nicht in der Play Console**. Datensicherheit unverändert
       (kein Standort, nur Abruf vom eigenen Server).
-- [ ] Locator- & Antennen-Tools: Locator↔Koordinaten, Entfernung/Peilung zwischen zwei beliebigen Punkten,
-      Kompass-Ausrichtung zum Ziel-Locator per Gerätesensor.
+- [x] **Locator & Peilung** in v1.18.0 (35), 15.11.2026: Werkzeuge → „Locator & Peilung“.
+      `data/tools/Locator.kt` (Maidenhead 2–10 Stellen → Feldmitte, Koordinaten-Parser für
+      „49.24, 6.99“ / „49,24 6,99“ / „49.24N 6.99E“ / „N49 E7“ / „;“-getrennt, DMS, Kurz-/Langweg,
+      Gegenpeilung, 16-teilige Himmelsrichtung DE/EN), `ui/tools/LocatorToolsScreen.kt`.
+      A = eigener QTH (Vorgabe), B frei. Kompass: Rotationsvektor-Sensor, rechtweisend über
+      `GeomagneticField`, Glättung, Display-Drehung berücksichtigt. Rechenlogik per Python-Port
+      geprüft (JN39LF, FN20XR, QF56OD, Rundreise 10 Stellen). Nicht auf echtem Gerät getestet.
 - [ ] Satelliten-Überflüge (TLE/SGP4) – aufwändigster Brocken.
-- [ ] Optional: schnellerer/robusterer DE-Provider direkt aus `de_afu.sqlite` als Ergänzung zur
-      Live-BNetzA-Abfrage (Datensatz liegt bereits auf dem Server).
+- [x] **DE-Suche robuster** (Backend, 15.11.2026, ohne App-Update wirksam): fällt die Live-Suche
+      der BNetzA aus (Timeout/nicht erreichbar), antwortet `app/de_list.py` aus `de_afu.sqlite`
+      (wöchentliche BNetzA-Rufzeichenliste) – Quelle „BNetzA-Rufzeichenliste (Stand TT.MM.JJJJ)“,
+      offiziell, inkl. Locator und „weitere Rufzeichen“, **nicht gecacht** (nächste Abfrage probiert
+      wieder live). Bei definitivem „nicht gefunden“ der Live-Suche kein Rückgriff. BNetzA-Timeout
+      je Anfrage 8 s (vorher 12 s). Tests: `tests/test_de_list.py`.
 
 ## Offen – Unterstützung / Spenden
 
