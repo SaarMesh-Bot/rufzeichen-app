@@ -23,7 +23,11 @@
 - [x] **Native Debug-Symbole** im Release-Build (`ndk { debugSymbolLevel = "FULL" }`) eingetragen
       (12.11.2026), kommt mit dem nächsten Release. Hinweis: Die .so-Dateien stammen nur aus
       AndroidX-Bibliotheken (graphics.path, datastore) und sind evtl. schon gestrippt – falls Play
-      die Warnung weiter zeigt, ist sie harmlos und kann ignoriert werden.
+      die Warnung weiter zeigt, ist sie harmlos und kann ignoriert werden. **Bestätigt (v34):** AAB enthält
+      keine Symbol-Dateien (AndroidX-.so sind gestrippt) → Warnung bleibt, ignorieren.
+- [x] **Backend: Rumänien-Import repariert** (15.11.2026): ANCOM liefert seit ~06.11. das
+      Zwischenzertifikat nicht mit → `ro_import.py` lädt `certs/GeoTrustTLSRSACAG1.pem` zusätzlich
+      (Prüfung bleibt an). Zertifikat läuft 11/2027 ab.
 - [x] **Länder-Ausrichtung erweitert** (15.11.2026, zur Prüfung eingereicht): US, CA, FI, HU, LT, RO
       (+1) ergänzt – für diese Länder hat das Backend amtliche Quellen.
 - [x] **Datensicherheit** (15.11.2026): „Ungefährer Standort“ = erhoben, nicht geteilt (nutzerinitiiert),
@@ -89,7 +93,16 @@
 
 ## Offen – Werkzeuge / Funktionen
 
-- [ ] Funkwetter / Ausbreitung (SFI, K/A-Index, Sonnenflecken, Grayline) über Backend-Proxy zu NOAA/HamQSL.
+- [x] **Funkwetter** in v1.17.0 (34), 15.11.2026: Werkzeuge → „Funkwetter“ (erste Karte).
+      Backend-Endpunkt `GET /api/v1/propagation` (`/opt/hamapi/app/propagation.py` auf bold-wright,
+      Tests in `tests/test_propagation.py`): N0NBH `hamqsl.com/solarxml.php` (Nutzung erlaubt, Credit
+      muss erhalten bleiben; N0NBH bittet um wenige Verbindungen → 30 min Server-Cache, App fragt nur
+      unser Backend) + NOAA SWPC Kp (48 h) und R/S/G-Skalen (gemeinfrei). Bei Ausfall: letzte gute
+      Kopie mit `stale`. App: `data/remote/PropagationDataSource.kt`, `ui/tools/PropagationScreen.kt`,
+      Grayline = Sonnenauf-/-untergang am eigenen QTH on-device (`data/tools/SunTimes.kt`, ohne
+      java.time wegen minSdk 24; geprüft: Saarbrücken 15.11. 06:42/15:51 UTC).
+      Release v1.17.0 auf GitHub, **noch nicht in der Play Console**. Datensicherheit unverändert
+      (kein Standort, nur Abruf vom eigenen Server).
 - [ ] Locator- & Antennen-Tools: Locator↔Koordinaten, Entfernung/Peilung zwischen zwei beliebigen Punkten,
       Kompass-Ausrichtung zum Ziel-Locator per Gerätesensor.
 - [ ] Satelliten-Überflüge (TLE/SGP4) – aufwändigster Brocken.
