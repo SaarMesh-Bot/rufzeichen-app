@@ -70,7 +70,7 @@
       (Migration 4→5), damit keine QSOs verloren gehen.
 - [x] **Englischer Store-Eintrag (en-US)** aktualisiert (15.11.2026), inkl. Relaissuche und
       Logbuch-Frequenz. Standardsprache ist de-DE; Übersetzungen en-US und en-GB.
-- [ ] **en-GB-Store-Eintrag** prüfen: evtl. noch alte automatische Übersetzung → Texte aus en-US übernehmen.
+- [x] **en-GB-Store-Eintrag** an en-US angeglichen. Alle 4 Änderungen am 15.11.2026 zur Prüfung eingereicht.
 
 ## Später (evtl. AGP-Upgrade)
 
